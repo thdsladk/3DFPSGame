@@ -6,6 +6,7 @@ public class CameraRotate : MonoBehaviour
     [SerializeField] private float _rotationSpeed = 200f;
     private float _accumulationX = 0; // 좌우   회전 각도
     private float _accumulationY = 0; // 위아래 회전 각도
+    private bool _isFirstFrame = true; // 커서 잠금 직후의 튀는 입력을 무시하기 위한 플래그
 
     private void Update()
     {
@@ -13,6 +14,13 @@ public class CameraRotate : MonoBehaviour
         var mouseX = Input.GetAxis("Mouse X");
         var mouseY = Input.GetAxis("Mouse Y");
         Debug.Log($"mouseX: {mouseX}, mouseY: {mouseY}");
+
+        // 커서가 잠기면서 화면 가운데로 이동할 때 생기는 첫 프레임의 큰 입력값은 무시한다.
+        if (_isFirstFrame)
+        {
+            _isFirstFrame = false;
+            return;
+        }
 
         // 2. 마우스 입력 만큼 회전값을 누적한다. 
         //Vector3 direction = new Vector3(-mouseY, mouseX, 0);

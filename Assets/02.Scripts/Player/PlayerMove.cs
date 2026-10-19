@@ -1,8 +1,15 @@
+using System;
 using UnityEngine;
 
 public class PlayerMove : MonoBehaviour
 {
     [SerializeField] private float _moveSpeed = 7f;
+    [SerializeField] private CharacterController _characterController;
+
+    private void Awake()
+    {
+        _characterController = GetComponent<CharacterController>();
+    }
 
     private void Update()
     {
@@ -17,6 +24,7 @@ public class PlayerMove : MonoBehaviour
         // 로컬 좌표계 , 월드 좌표계 
 
         // 3. 방향과 속력에 따라 이동한다. 
-        transform.position += direction * _moveSpeed * Time.deltaTime;
+        //transform.position += direction * _moveSpeed * Time.deltaTime;
+        _characterController.Move(direction * _moveSpeed * Time.deltaTime);
     }
 }
