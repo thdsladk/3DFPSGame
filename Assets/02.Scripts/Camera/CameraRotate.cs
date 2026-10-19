@@ -17,7 +17,7 @@ public class CameraRotate : MonoBehaviour
         // 2. 마우스 입력 만큼 회전값을 누적한다. 
         //Vector3 direction = new Vector3(-mouseY, mouseX, 0);
         _accumulationX += mouseX * _rotationSpeed * Time.deltaTime;
-        _accumulationY += -mouseY * _rotationSpeed * Time.deltaTime;
+        _accumulationY += mouseY * _rotationSpeed * Time.deltaTime;
 
         // 3. 누적하기 전에 내 변수에서 먼저 -90 ~ 90도로 제한
         _accumulationY = Mathf.Clamp(_accumulationY, -90, 90);
