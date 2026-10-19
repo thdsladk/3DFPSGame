@@ -431,13 +431,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.1377098, y: 0.7232774, z: -0.16950205, w: 0.65511453}
-  m_LocalPosition: {x: -8.96, y: 5.67, z: 5.02}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: -4.48, y: 2.2, z: 3.22}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 25.19, y: 95.338, z: -1.449}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!114 &330585547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -504,10 +504,33 @@ MonoBehaviour:
   m_GameObject: {fileID: 330585543}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ef7e662fd9077db4b9d3af24bc509943, type: 3}
+  m_Script: {fileID: 11500000, guid: 947b585b14cdf9d40bed2f653f913a24, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
-  _target: {fileID: 1279713976}
+  m_EditorClassIdentifier: Assembly-CSharp::CameraViewChanger
+  _player: {fileID: 1770831404}
+  _eyePosition: {fileID: 1279713976}
+  _transitionDuration: 0.3
+  _views:
+  - View: 0
+    UseMouseLook: 1
+    Offset: {x: 0, y: 0, z: 0}
+    FixedEulerAngles: {x: 0, y: 0, z: 0}
+  - View: 1
+    UseMouseLook: 1
+    Offset: {x: 0, y: 0.5, z: -4}
+    FixedEulerAngles: {x: 0, y: 0, z: 0}
+  - View: 2
+    UseMouseLook: 1
+    Offset: {x: 0.8, y: 0.3, z: -2}
+    FixedEulerAngles: {x: 0, y: 0, z: 0}
+  - View: 3
+    UseMouseLook: 0
+    Offset: {x: 0, y: 0, z: -12}
+    FixedEulerAngles: {x: 45, y: 45, z: 0}
+  - View: 4
+    UseMouseLook: 0
+    Offset: {x: 0, y: 0, z: -15}
+    FixedEulerAngles: {x: 90, y: 0, z: 0}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1502,6 +1525,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
   _moveSpeed: 7
+  _characterController: {fileID: 0}
+  _cameraTransform: {fileID: 330585546}
 --- !u!143 &1770831407
 CharacterController:
   m_ObjectHideFlags: 0

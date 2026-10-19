@@ -6,7 +6,10 @@ public class CameraFollow : MonoBehaviour
 
     private void Awake()
     {
-        if (_target == null) Debug.LogWarning("[CameraFollow] No target found");
+        if (_target == null)
+        {
+            Debug.LogWarning("[CameraFollow] No target found");
+        }
     }
 
     private void LateUpdate()
