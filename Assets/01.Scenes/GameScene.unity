@@ -494,7 +494,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d3174f1e21c7c3438e6cbc19c891b36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraRotate
-  _rotationSpeed: 200
+  _maxPitch: 60
 --- !u!114 &330585549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1669,6 +1669,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerRotate
   _rotationSpeed: 200
+  _maxScreenYaw: 60
+  _edgeThreshold: 0.98
 --- !u!114 &1770831406
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1726,6 +1728,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92c261418a2a24549b253fad594fafda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerGunFire
+  _hitEffectPrefab: {fileID: 19800002, guid: 54dd9cb5740188a488b8baebbf19207c, type: 3}
 --- !u!1 &1972830281
 GameObject:
   m_ObjectHideFlags: 0
