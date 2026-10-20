@@ -7,6 +7,7 @@ public class PlayerMove : MonoBehaviour
     private float _yVelocity = 0f;
 
     [SerializeField] private float _moveSpeed = 7f;
+    [SerializeField] private float _sprintSpeed = 14f;
     [SerializeField] private float _jumpPower = 12f;
 
     [SerializeField] private CharacterController _characterController;
@@ -35,6 +36,10 @@ public class PlayerMove : MonoBehaviour
         {
             _yVelocity += Gravity * Time.deltaTime;
         }
+        else
+        {
+            _yVelocity = -1f;
+        }
 
         // 4. 점프키를 누르면 점프 
         if (Input.GetButtonDown("Jump") && _characterController.isGrounded) // 중재자 패턴 
@@ -43,7 +48,8 @@ public class PlayerMove : MonoBehaviour
         }
 
         // 5. 속도를 구한다.
-        Vector3 velocity = direction * _moveSpeed;
+        float currentSpeed = Input.GetButton("Sprint") ? _sprintSpeed : _moveSpeed;
+        Vector3 velocity = direction * currentSpeed;
         velocity.y = _yVelocity;
 
         // 6. 속도(방향과 속력)에 따라 이동한다. 
