@@ -4,14 +4,52 @@ using UnityEngine;
 public class PlayerGunFire : MonoBehaviour
 {
     [SerializeField] private ParticleSystem _hitEffectPrefab;
-    private float _range = 100f;
-    private float _damage = 10f;
+
+    private int MaxAmmo = 50;
+
+    [Header("Stat")]
+    [SerializeField] private float _range = 100f; // 사거리 
+
+    [SerializeField] private float _damage = 10f; // 공격력
+    [SerializeField] private float _fireInterval = 0.1f; // 발사 간격 
+    [SerializeField] private float _ReloadInterval = 0.5f; // 장전 간격 
+    [SerializeField] private int _ammo = 0;
+
+    private float _fireTimer = 0f;
+    private float _reloadTimer = 0f;
+    private bool isReloading = false;
+
+    private void Awake()
+    {
+        _ammo = MaxAmmo;
+        _reloadTimer = _fireInterval;
+    }
 
     private void Update()
     {
-        // 1. 마우스 왼쪽 버튼 입력 받기
-        if (Input.GetButtonDown("Fire1"))
+        // 0. 발사 타이머를 지난 시간만큼 줄인다.
+        _fireTimer -= Time.deltaTime;
+        _reloadTimer -= Time.deltaTime;
+
+        // 1. 재장전 입력 받기
+        if (Input.GetButtonDown("Reload"))
         {
+            isReloading = true;
+        }
+
+        // 2. 재장전 실행
+        if (isReloading == true)
+        {
+            Reload();
+        }
+
+        // 3. 마우스 왼쪽 버튼 입력 받기
+        if (Input.GetButton("Fire1") && _fireTimer <= 0f && (_ammo > 0))
+        {
+            // 발사하면 재장전 꺼짐
+            isReloading = false;
+
+            _fireTimer = _fireInterval;
             Shoot();
         }
     }
@@ -21,6 +59,10 @@ public class PlayerGunFire : MonoBehaviour
         // Ray: 레이저 ( 시작위치, 날아갈 방향 ) 
         // Pysics.RayCast : 레이저를 발사
         // RayCastHit : 레이저가 물체와 부딛히면 그 정보를 저장하는 구조체 
+
+        // 1. 총알 소모 
+        _ammo--;
+        GameLogger.Log($"Ammo: {_ammo}");
 
         // 2. 레이(광선)를 생성하고 발사될 위치와 진행 방향 설정하기 
         Transform cameraTransform = Camera.main.transform;
@@ -36,9 +78,36 @@ public class PlayerGunFire : MonoBehaviour
             //GameLogger.Log($"{hitInfo.collider.name}이 총알을 맞았다.");
 
             ParticleSystem effect = Instantiate(_hitEffectPrefab);
-            effect.transform.position = hitInfo.point;  //  맞은 위치
-            effect.transform.forward = hitInfo.normal;  //  수직 위치로 회전
+            effect.transform.position = hitInfo.point; //  맞은 위치
+            effect.transform.forward = hitInfo.normal; //  수직 위치로 회전
             effect.Play();
+        }
+
+        // 5. 총알이 없으면 재장전 자동으로 
+        if (_ammo == 0)
+        {
+            isReloading = true;
+        }
+    }
+
+
+    private void Reload()
+    {
+        // 장전 간격이랑 장전해야할 총알이 있을때 작동
+        if (_reloadTimer <= 0f && (_ammo < MaxAmmo))
+        {
+            // 장전 간격 초기화
+            _reloadTimer = _fireInterval;
+
+            // 장전 + 1
+            _ammo++;
+            GameLogger.Log($"Ammo: {_ammo}");
+
+            // 다차면 장전 모드 끝
+            if (_ammo == MaxAmmo)
+            {
+                isReloading = false;
+            }
         }
     }
 }
