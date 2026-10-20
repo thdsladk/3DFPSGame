@@ -3,7 +3,12 @@ using UnityEngine;
 
 public class PlayerMove : MonoBehaviour
 {
+    private const float Gravity = -20f;
+    private float _yVelocity = 0f;
+
     [SerializeField] private float _moveSpeed = 7f;
+    [SerializeField] private float _jumpPower = 12f;
+
     [SerializeField] private CharacterController _characterController;
     [SerializeField] private Transform _cameraTransform;
 
@@ -25,8 +30,24 @@ public class PlayerMove : MonoBehaviour
         direction = Quaternion.Euler(0f, _cameraTransform.eulerAngles.y, 0f) * direction;
         // 로컬 좌표계 , 월드 좌표계
 
-        // 3. 방향과 속력에 따라 이동한다. 
+        // 3. 중력을 누적한다.
+        if (_characterController.isGrounded == false)
+        {
+            _yVelocity += Gravity * Time.deltaTime;
+        }
+
+        // 4. 점프키를 누르면 점프 
+        if (Input.GetButtonDown("Jump") && _characterController.isGrounded) // 중재자 패턴 
+        {
+            _yVelocity = _jumpPower;
+        }
+
+        // 5. 속도를 구한다.
+        Vector3 velocity = direction * _moveSpeed;
+        velocity.y = _yVelocity;
+
+        // 6. 속도(방향과 속력)에 따라 이동한다. 
         //transform.position += direction * _moveSpeed * Time.deltaTime;
-        _characterController.Move(direction * _moveSpeed * Time.deltaTime);
+        _characterController.Move(velocity * Time.deltaTime);
     }
 }
