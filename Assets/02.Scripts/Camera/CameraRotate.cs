@@ -1,37 +1,21 @@
 using UnityEngine;
 
-// 역할 : 마우스 위아래 입력을 누적해서 카메라의 위아래 회전 각도(Pitch)를 계산한다.
+// 역할 : 마우스 커서의 세로 위치를 카메라의 위아래 회전 각도(Pitch)로 바꾼다.
+// 커서가 가운데면 정면, 맨 위면 위로 _maxPitch, 맨 아래면 아래로 _maxPitch 만큼 본다.
 // 실제 카메라 위치·회전 적용은 CameraViewChanger가 담당한다.
 public class CameraRotate : MonoBehaviour
 {
-    [SerializeField] private float _rotationSpeed = 200f;
-    private float _accumulationY = 0; // 위아래 회전 각도
-    private bool _isFirstFrame = true; // 커서 잠금 직후의 튀는 입력을 무시하기 위한 플래그
+    [SerializeField] private float _maxPitch = 60f; // 커서가 화면 위아래 끝에 있을 때의 각도
 
     // 카메라 eulerAngles.x 에 그대로 넣을 수 있는 위아래 각도 (양수 = 아래를 봄)
-    public float Pitch => -_accumulationY;
-
+    public float Pitch { get; private set; }
 
     // CameraViewChanger가 LateUpdate에서 읽기 전에 계산이 끝나도록 Update에서 처리한다.
     private void Update()
     {
-        // 1. 마우스 입력을 받는다.
-        var mouseY = Input.GetAxis("Mouse Y");
-
-        GameLogger.Log($"mouseY: {mouseY}");
-
-        // 커서가 잠기면서 화면 가운데로 이동할 때 생기는 첫 프레임의 큰 입력값은 무시한다.
-        if (_isFirstFrame)
-        {
-            _isFirstFrame = false;
-            return;
-        }
-
-        // 2. 마우스 입력 만큼 회전값을 누적한다.
-        _accumulationY += mouseY * _rotationSpeed * Time.deltaTime;
-
-        // 3. 누적하기 전에 내 변수에서 먼저 -90 ~ 90도로 제한
-        _accumulationY = Mathf.Clamp(_accumulationY, -90, 90);
+        // 커서가 위에 있을수록(+1) 위를 보도록 부호를 뒤집는다. 유니티는 x 각도가 음수일 때 위를 본다.
+        var cursorY = CursorManager.GetNormalizedCursorPosition().y;
+        Pitch = -cursorY * _maxPitch;
 
         // // 3. 그 방향으로 회전 시킨다.
         // transform.eulerAngles += direction * _rotationSpeed * Time.deltaTime;

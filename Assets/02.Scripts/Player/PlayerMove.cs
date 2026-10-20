@@ -5,12 +5,21 @@ public class PlayerMove : MonoBehaviour
 {
     private const float Gravity = -20f;
     private const int MaxJumps = 2;
+    private const float MaxStamina = 100f;
+
     private float _yVelocity = 0f;
     private int _jumpCount = 0;
+    private float _stamina = 0f;
 
+    [Header("Stat")]
     [SerializeField] private float _moveSpeed = 7f;
+
     [SerializeField] private float _sprintSpeed = 14f;
     [SerializeField] private float _jumpPower = 12f;
+    [SerializeField] private float _staminaRecovery = 15f;
+    [SerializeField] private float _sprintStaminaCost = 10f;
+    [SerializeField] private float _jumpStaminaCost = 20f;
+
 
     [SerializeField] private CharacterController _characterController;
     [SerializeField] private Transform _cameraTransform;
@@ -18,10 +27,14 @@ public class PlayerMove : MonoBehaviour
     private void Awake()
     {
         _characterController = GetComponent<CharacterController>();
+        _stamina = MaxStamina;
     }
 
     private void Update()
     {
+        // 0. 스태미나 회복 
+        _stamina = Mathf.Min(MaxStamina, _stamina + _staminaRecovery * Time.deltaTime);
+
         // 1. 키보드 입력을 받는다.
         var h = Input.GetAxisRaw("Horizontal"); // -1,0,1
         var v = Input.GetAxisRaw("Vertical"); // -1,0,1
@@ -45,14 +58,23 @@ public class PlayerMove : MonoBehaviour
         }
 
         // 4. 점프키를 누르면 점프 && 점프 카운트가 MaxJumps이하라면 ... 점프를 한다. 
-        if (Input.GetButtonDown("Jump") && _jumpCount < MaxJumps) // 중재자 패턴 
+        if (Input.GetButtonDown("Jump") && _jumpCount < MaxJumps && _stamina >= _jumpStaminaCost) // 중재자 패턴 
         {
             _yVelocity = _jumpPower;
             _jumpCount++;
+            _stamina -= _jumpStaminaCost;
         }
 
-        // 5. 속도를 구한다.
-        float currentSpeed = Input.GetButton("Sprint") ? _sprintSpeed : _moveSpeed;
+        // 5. 속도를 구한다.\
+        float requiredStamina = _sprintStaminaCost * Time.deltaTime;
+        bool wantSprint = Input.GetButton("Sprint") && _stamina > requiredStamina;
+        float currentSpeed = _moveSpeed;
+        if (wantSprint)
+        {
+            currentSpeed = _sprintSpeed;
+            _stamina -= requiredStamina;
+        }
+
         Vector3 velocity = direction * currentSpeed;
         velocity.y = _yVelocity;
 
