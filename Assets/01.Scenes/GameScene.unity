@@ -1548,10 +1548,13 @@ GameObject:
   - component: {fileID: 1770831403}
   - component: {fileID: 1770831402}
   - component: {fileID: 1770831401}
+  - component: {fileID: 1770831411}
   - component: {fileID: 1770831405}
   - component: {fileID: 1770831406}
+  - component: {fileID: 1770831410}
   - component: {fileID: 1770831407}
   - component: {fileID: 1770831408}
+  - component: {fileID: 1770831409}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -1685,11 +1688,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
   _moveSpeed: 7
   _sprintSpeed: 14
-  _jumpPower: 10
-  _staminaRecovery: 15
   _sprintStaminaCost: 10
-  _jumpStaminaCost: 20
-  _characterController: {fileID: 0}
+  _useAcceleration: 1
+  _acceleration: 60
+  _deceleration: 50
+  _useAirControl: 1
+  _airControlMultiplier: 0.4
   _cameraTransform: {fileID: 330585546}
 --- !u!143 &1770831407
 CharacterController:
@@ -1729,6 +1733,65 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerGunFire
   _hitEffectPrefab: {fileID: 19800002, guid: 54dd9cb5740188a488b8baebbf19207c, type: 3}
+  _range: 100
+  _damage: 10
+  _fireInterval: 0.1
+  _ReloadInterval: 0.01
+  _ammo: 0
+--- !u!114 &1770831409
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1770831400}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f2e1a7d7d96f074aaafe1da28730ff8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStamina
+  _maxStamina: 100
+  _recoveryPerSecond: 15
+--- !u!114 &1770831410
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1770831400}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72918eec4a6e6e34f9df1731dab0ee8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerJump
+  _gravity: -20
+  _jumpPower: 12
+  _maxJumps: 2
+  _jumpStaminaCost: 20
+  _groundStickVelocity: -2
+  _useCoyoteTime: 1
+  _coyoteTime: 0.1
+  _useJumpBuffer: 1
+  _jumpBufferTime: 0.1
+  _useVariableJumpHeight: 1
+  _jumpCutMultiplier: 0.5
+  _useFastFall: 1
+  _fallGravityMultiplier: 2
+  _useMaxFallSpeed: 1
+  _maxFallSpeed: 30
+  _useCeilingHit: 1
+--- !u!114 &1770831411
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1770831400}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6ec0dc3821007843bd3922a25634e0c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerMotor
 --- !u!1 &1972830281
 GameObject:
   m_ObjectHideFlags: 0
