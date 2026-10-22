@@ -116,6 +116,7 @@ public class PlayerGunFire : MonoBehaviour
             //    zombie.TakeDamage(_damage);
             //}
             hitInfo.collider.GetComponent<Zombie>()?.TakeDamage(_damage);
+            hitInfo.collider.GetComponent<Drum>()?.Damage(_damage);
         }
 
         // 5. 총알이 없으면 재장전 자동으로
