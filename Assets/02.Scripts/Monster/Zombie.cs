@@ -10,6 +10,7 @@ using UnityEngine;
 public enum ZombieState
 {
     Idle, // 대기 : 제자리에서 플레이어를 기다린다.
+    Patrol, // 순찰 : 처음 자리와 주변의 랜덤 지점을 오간다.
     Trace, // 추격 : 플레이어를 쫓아간다.
     Comeback, // 복귀 : 처음 자리로 돌아간다.
     Attack, // 공격 : 일정 시간마다 플레이어를 때린다.
@@ -28,7 +29,16 @@ public class Zombie : MonoBehaviour
     [SerializeField] private float _moveSpeed = 5f;
     [SerializeField] private float _health = 100f;
 
+    [Header("Patrol")]
+    [SerializeField] private float _patrolDistance = 5f; // 처음 자리에서 순찰 지점까지의 거리
+    [SerializeField] private float _patrolSpeed = 2f; // 순찰할 때는 추격보다 천천히 걷는다
+    [SerializeField] private float _idleWaitTime = 2f; // 지점에 도착한 뒤 다음 지점으로 가기 전까지 쉬는 시간
+    [SerializeField] private float _arriveDistance = 0.5f; // 이 거리 안이면 도착한 것으로 본다
+
     private float _attackTimer = 0f;
+    private float _idleTimer = 0f;
+    private float _patrolTimer = 0f;
+    private Vector3 _patrolTarget;
     private CharacterController _controller;
     private Vector3 _startPosition;
     private GameObject _player;
@@ -49,6 +59,11 @@ public class Zombie : MonoBehaviour
             case ZombieState.Idle:
             {
                 Idle();
+                break;
+            }
+            case ZombieState.Patrol:
+            {
+                Patrol();
                 break;
             }
             case ZombieState.Trace:
@@ -84,7 +99,74 @@ public class Zombie : MonoBehaviour
         {
             GameLogger.Log($"{_state} -> Trace ");
             _state = ZombieState.Trace;
+            return;
         }
+
+        // 잠깐 쉬었다가 다음 순찰 지점으로 출발한다.
+        _idleTimer += Time.deltaTime;
+        if (_idleTimer >= _idleWaitTime)
+        {
+            _idleTimer = 0f;
+            StartPatrol();
+        }
+    }
+
+    // 처음 자리 → 랜덤 지점 → 처음 자리 → 새 랜덤 지점 … 순서로 오간다.
+    // 처음 자리 근처면 랜덤 지점으로, 아니면 처음 자리로 간다. (복귀 직후에도 헛걸음하지 않는다)
+    private void StartPatrol()
+    {
+        Vector3 offsetFromStart = transform.position - _startPosition;
+        offsetFromStart.y = 0f;
+        bool isNearStart = offsetFromStart.magnitude <= _arriveDistance * 2f;
+
+        _patrolTarget = isNearStart ? GetRandomPatrolPoint() : _startPosition;
+        _patrolTimer = 0f;
+
+        GameLogger.Log($"{_state} -> Patrol ({(isNearStart ? "랜덤 지점" : "처음 자리")})");
+        _state = ZombieState.Patrol;
+    }
+
+    // 처음 자리에서 순찰 거리만큼 떨어진 원 위의 랜덤 지점
+    private Vector3 GetRandomPatrolPoint()
+    {
+        Vector2 randomDirection = Random.insideUnitCircle.normalized;
+        if (randomDirection == Vector2.zero)
+        {
+            randomDirection = Vector2.right;
+        }
+
+        return _startPosition + new Vector3(randomDirection.x, 0f, randomDirection.y) * _patrolDistance;
+    }
+
+    private void Patrol()
+    {
+        // Todo. Walk 애니메이션 실행
+
+        // 순찰 중에도 플레이어가 가까워지면 Trace
+        if (Vector3.Distance(transform.position, _player.transform.position) <= _detectDistance)
+        {
+            GameLogger.Log($"{_state} -> Trace ");
+            _state = ZombieState.Trace;
+            return;
+        }
+
+        Vector3 direction = _patrolTarget - transform.position;
+        direction.y = 0f; // 높이 차이는 무시하고 바닥 기준 거리로 판단한다.
+
+        // 목표에 도착했거나, 벽 등에 막혀 너무 오래 걸리면 대기하고 다음 지점으로 간다.
+        _patrolTimer += Time.deltaTime;
+        float patrolTimeLimit = _patrolDistance / _patrolSpeed * 2f + 1f;
+        if (direction.magnitude <= _arriveDistance || _patrolTimer >= patrolTimeLimit)
+        {
+            GameLogger.Log($"{_state} -> Idle");
+            _state = ZombieState.Idle;
+            return;
+        }
+
+        direction.Normalize();
+
+        transform.forward = direction;
+        _controller.SimpleMove(direction * _patrolSpeed);
     }
 
     private void Trace()
