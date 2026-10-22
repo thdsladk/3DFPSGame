@@ -8,3 +8,6 @@ indent_size = 4
 # 필드 속성([SerializeField] 등)은 선언이 한 줄일 때만 같은 줄에 두고,
 # 초기화가 여러 줄로 이어지는 필드는 속성을 별도 줄로 분리한다.
 resharper_csharp_place_field_attribute_on_same_line = if_owner_is_single_line
+
+# switch 문에서 case 아래 { } 블록은 case 와 같은 줄 높이에 두고 추가로 들여쓰지 않는다.
+csharp_indent_case_contents_when_block = false
