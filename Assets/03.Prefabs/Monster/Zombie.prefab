@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 646163326573184813}
   - component: {fileID: 8764305469652008530}
   - component: {fileID: 1750869620186010735}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -123,8 +123,9 @@ GameObject:
   - component: {fileID: 7710884917052648333}
   - component: {fileID: 971701813412391676}
   - component: {fileID: 6338458339921651831}
+  - component: {fileID: 5872818045020485610}
   - component: {fileID: 5351599158899395873}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Zombie
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -204,6 +205,28 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &5872818045020485610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4640295849745363958}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c73921940878d2d4ba84c90416e60fe0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Zombie
+  _detectDistance: 8
+  _comebackDistance: 12
+  _attackRange: 1
+  _attackInterval: 1.2
+  _moveSpeed: 5
+  _health: 100
+  _patrolDistance: 5
+  _patrolSpeed: 2
+  _idleWaitTime: 2
+  _arriveDistance: 0.5
 --- !u!143 &5351599158899395873
 CharacterController:
   m_ObjectHideFlags: 0
