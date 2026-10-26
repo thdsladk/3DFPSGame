@@ -14,6 +14,21 @@ public class CursorManager : MonoBehaviour
         ConfineCursor();
     }
 
+    private void Update()
+    {
+        // Todo 게임 매니저 만들고 플레이 중이 아니면 반환 
+        //if(Gamemanager.Instance.State != Playing ) return;
+
+        if (Input.GetKeyDown(KeyCode.LeftAlt))
+        {
+            UnlockCursor();
+        }
+        else if (Input.GetKeyUp(KeyCode.LeftAlt))
+        {
+            LockCursor();
+        }
+    }
+
     public void LockCursor()
     {
         Cursor.lockState = CursorLockMode.Locked; // 화면 가운데에 고정

@@ -33,7 +33,8 @@ public class PlayerGunFire : MonoBehaviour
         _fireTimer -= Time.deltaTime;
 
         // 1. 재장전 입력 받기
-        if (Input.GetButtonDown("Reload") && _reloadCoroutine == null)
+        bool isMouseVisible = Cursor.visible;
+        if (isMouseVisible == false && Input.GetButtonDown("Reload") && _reloadCoroutine == null)
         {
             StartReload();
         }
