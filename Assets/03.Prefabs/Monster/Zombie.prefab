@@ -221,11 +221,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Zombie
   _detectDistance: 8
   _comebackDistance: 12
+  _attackDamage: 10
   _attackRange: 1
   _attackInterval: 1.2
   _moveSpeed: 5
   _maxHealth: 30
   _health: 100
+  _bloodSprayPrefab: {fileID: 1000013355911406, guid: d32aa916f50cac94db11e6f19821a58f, type: 3}
   _patrolDistance: 5
   _patrolSpeed: 2
   _idleWaitTime: 2
@@ -460,6 +462,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ZombieHealthBar
   _slider: {fileID: 1084490468837905784}
+  _smoothTime: 0.2
 --- !u!1 &6760955841122030164
 GameObject:
   m_ObjectHideFlags: 0
