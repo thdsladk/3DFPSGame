@@ -12,8 +12,10 @@ public class ZombieHealthBar : MonoBehaviour
         _zombie = GetComponentInParent<Zombie>();
     }
 
-    private void Update()
+    private void LateUpdate()
     {
         _slider.value = _zombie.Health / _zombie.MaxHealth;
+
+        _slider.transform.forward = Camera.main.transform.forward;
     }
 }
