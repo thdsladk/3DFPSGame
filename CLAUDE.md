@@ -9,6 +9,17 @@ Unity 6 (`6000.3.22f1`), URP 기반 3D 슈팅 게임 학습 프로젝트. 메인
 - 빌드·실행·테스트는 Unity 에디터에서 한다. 이 저장소에는 CLI 빌드 스크립트나 테스트 코드가 없다 (`Assets/02.Scripts/Test/`의 파일은 C# 문법 연습용 MonoBehaviour이지 단위 테스트가 아님).
 - `.unity`, `.prefab`, `.asset` 파일은 Unity가 관리하는 YAML이다. 직접 편집하지 말고, Inspector에서 해야 하는 작업은 사용자에게 안내한다. 스크립트 이름을 바꾸면 `.meta`의 GUID 연결이 끊길 수 있으므로 주의한다.
 
+## Unity 공식 Claude Code 플러그인
+
+Unity가 제공하는 공식 플러그인(엔진 스킬, Unity CLI, 에디터 제어용 MCP 서버 포함)을 사용할 수 있다. 설치는 슬래시 명령이라 사용자가 직접 입력해야 한다.
+
+```
+/plugin marketplace add Unity-Technologies/unity-agent-plugin
+/plugin install unity@unity-agent-plugin
+```
+
+설치 후 `/unity:`를 입력하면 스킬 목록을 볼 수 있다. URP·렌더링 등 엔진 기능을 다루거나 에디터에서 해야 하는 작업(씬 오브젝트 연결 등)이 필요하면, 플러그인이 설치되어 있는지 확인하고 해당 스킬을 우선 사용한다. 설치되어 있지 않으면 사용자에게 설치를 안내한다.
+
 ## 커밋 / 포맷 규칙 (Husky.Net 훅)
 
 `dotnet-tools.json`에 Husky.Net이 등록되어 있다 (최초 1회 `dotnet tool restore` 후 `dotnet husky install`).
