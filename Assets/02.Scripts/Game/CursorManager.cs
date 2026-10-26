@@ -16,8 +16,8 @@ public class CursorManager : MonoBehaviour
 
     private void Update()
     {
-        // Todo 게임 매니저 만들고 플레이 중이 아니면 반환 
-        //if(Gamemanager.Instance.State != Playing ) return;
+        // 게임 중이 아니면 커서를 건드리지 않는다.
+        if (GameManager.Instance.State != GameState.Playing) return;
 
         if (Input.GetKeyDown(KeyCode.LeftAlt))
         {
@@ -25,9 +25,13 @@ public class CursorManager : MonoBehaviour
         }
         else if (Input.GetKeyUp(KeyCode.LeftAlt))
         {
-            LockCursor();
+            // 커서 위치로 시선을 정하므로, 잠그지 않고 화면 안에 가두는 원래 상태로 돌아간다.
+            ConfineCursor();
         }
     }
+
+    // Alt로 커서를 풀어 둔 상태인지. 평소(Confined)에도 커서가 보이므로 Cursor.visible 대신 이것으로 판단한다.
+    public static bool IsCursorFree => Cursor.lockState == CursorLockMode.None;
 
     public void LockCursor()
     {

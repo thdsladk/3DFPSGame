@@ -13,6 +13,8 @@ public class CameraRotate : MonoBehaviour
     // CameraViewChanger가 LateUpdate에서 읽기 전에 계산이 끝나도록 Update에서 처리한다.
     private void Update()
     {
+        if (GameManager.Instance.State != GameState.Playing) return;
+
         // 커서가 위에 있을수록(+1) 위를 보도록 부호를 뒤집는다. 유니티는 x 각도가 음수일 때 위를 본다.
         var cursorY = CursorManager.GetNormalizedCursorPosition().y;
         Pitch = -cursorY * _maxPitch;

@@ -49,7 +49,7 @@ public class GameManager : MonoBehaviour
         _stateText.gameObject.SetActive(true);
         _stateText.text = "준비";
         yield return new WaitForSeconds(1.5f);
-        _stateText.text = "시작!";
+        _stateText.text = "게임 시작!";
         yield return new WaitForSeconds(0.5f);
         _stateText.gameObject.SetActive(false);
 

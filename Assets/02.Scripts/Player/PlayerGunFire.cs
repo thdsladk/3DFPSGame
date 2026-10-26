@@ -34,9 +34,11 @@ public class PlayerGunFire : MonoBehaviour
         // 0. 발사 타이머를 지난 시간만큼 줄인다.
         _fireTimer -= Time.deltaTime;
 
+        // Alt로 커서를 풀어 UI 버튼을 누르는 중이면 쏘거나 재장전하지 않는다.
+        if (CursorManager.IsCursorFree) return;
+
         // 1. 재장전 입력 받기
-        bool isMouseVisible = Cursor.visible;
-        if (isMouseVisible == false && Input.GetButtonDown("Reload") && _reloadCoroutine == null)
+        if (Input.GetButtonDown("Reload") && _reloadCoroutine == null)
         {
             StartReload();
         }
@@ -124,7 +126,8 @@ public class PlayerGunFire : MonoBehaviour
                 HitPoint = hitInfo.point,
                 HitNormal = hitInfo.normal,
             };
-            hitInfo.collider.GetComponent<IDamageable>()?.TakeDamage(damageInfo);
+            // 좀비 코처럼 자식 콜라이더에 맞아도 대미지가 들어가도록 부모까지 찾는다.
+            hitInfo.collider.GetComponentInParent<IDamageable>()?.TakeDamage(damageInfo);
         }
 
         // 5. 총알이 없으면 재장전 자동으로

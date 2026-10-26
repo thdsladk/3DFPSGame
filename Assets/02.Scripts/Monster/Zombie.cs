@@ -34,6 +34,9 @@ public class Zombie : MonoBehaviour, IDamageable
     [SerializeField] private float _maxHealth = 30f;
     [SerializeField] private float _health = 100f;
 
+    [Header("이펙트")]
+    [SerializeField] private GameObject _bloodSprayPrefab; // 맞은 자리에서 뿜어지는 피
+
     [Header("Patrol")]
     [SerializeField] private float _patrolDistance = 5f; // 처음 자리에서 순찰 지점까지의 거리
 
@@ -245,6 +248,7 @@ public class Zombie : MonoBehaviour, IDamageable
         {
             GameLogger.Log($"{_state} -> Trace ");
             _state = ZombieState.Trace;
+            return;
         }
 
         _attackTimer += Time.deltaTime;
@@ -278,12 +282,24 @@ public class Zombie : MonoBehaviour, IDamageable
 
         if (_health > 0f)
         {
+            SprayBlood(damageInfo);
             StartCoroutine(Hit_Coroutine());
         }
         else
         {
             StartCoroutine(Death_Coroutine());
         }
+    }
+
+    // 좀비의 자식으로 피 스프레이를 만들고, 맞은 자리와 방향으로 옮긴다.
+    private void SprayBlood(DamageInfo damageInfo)
+    {
+        // Blood Gush 에셋을 아직 넣지 않았으면 건너뛴다.
+        if (_bloodSprayPrefab == null) return;
+
+        GameObject bloodSpray = Instantiate(_bloodSprayPrefab, transform);
+        bloodSpray.transform.position = damageInfo.HitPoint;
+        bloodSpray.transform.forward = damageInfo.HitNormal;
     }
 
     private IEnumerator Hit_Coroutine()

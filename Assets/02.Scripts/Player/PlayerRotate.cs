@@ -21,6 +21,8 @@ public class PlayerRotate : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance.State != GameState.Playing) return;
+
         var mouseX = Input.GetAxis("Mouse X");
         var cursorX = CursorManager.GetNormalizedCursorPosition().x;
 
