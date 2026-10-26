@@ -24,6 +24,8 @@ public class PlayerMotor : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance.State != GameState.Playing) return;
+
         var deltaTime = Time.deltaTime;
 
         // 1. 직전 Move 결과로 바닥에 있는지 확인한다.

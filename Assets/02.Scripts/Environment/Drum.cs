@@ -3,7 +3,7 @@ using UnityEngine;
 
 
 [RequireComponent(typeof(Rigidbody))]
-public class Drum : MonoBehaviour
+public class Drum : MonoBehaviour, IDamageable
 {
     // 체력이 0이 되면 위로 튀어오르며 폭발하는 드럼통
     [SerializeField] private ParticleSystem _explodeEffectPrefab;
@@ -26,14 +26,14 @@ public class Drum : MonoBehaviour
     }
 
 
-    public void Damage(float damage)
+    public void TakeDamage(DamageInfo damageInfo)
     {
         if (_health <= 0f)
         {
             return;
         }
 
-        _health -= damage;
+        _health -= damageInfo.Value;
         if (_health <= 0f)
         {
             StartCoroutine(Explode_Coroutine());
@@ -66,11 +66,16 @@ public class Drum : MonoBehaviour
         // 0. 주위에 있는 드럼통들을 모두 찾는다. 
         Collider[] colliders =
             Physics.OverlapSphere(transform.position, _explosionRange, LayerMask.GetMask("Drum", "Zombie"));
-        // 1. 드럼통들에게 데미지를 준다. 
+        // 1. 드럼통·좀비들에게 데미지를 준다.
         foreach (Collider collider in colliders)
         {
-            collider.GetComponent<Drum>()?.Damage(_explosionDamage);
-            collider.GetComponent<Zombie>()?.TakeDamage(_explosionDamage);
+            DamageInfo damageInfo = new DamageInfo()
+            {
+                Value = _explosionDamage,
+                HitPoint = collider.transform.position,
+                HitNormal = (collider.transform.position - transform.position).normalized,
+            };
+            collider.GetComponent<IDamageable>()?.TakeDamage(damageInfo);
         }
     }
 }

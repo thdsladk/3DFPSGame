@@ -29,6 +29,8 @@ public class PlayerGunFire : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance.State != GameState.Playing) return;
+
         // 0. 발사 타이머를 지난 시간만큼 줄인다.
         _fireTimer -= Time.deltaTime;
 
@@ -116,8 +118,13 @@ public class PlayerGunFire : MonoBehaviour
             //{
             //    zombie.TakeDamage(_damage);
             //}
-            hitInfo.collider.GetComponent<Zombie>()?.TakeDamage(_damage);
-            hitInfo.collider.GetComponent<Drum>()?.Damage(_damage);
+            DamageInfo damageInfo = new DamageInfo()
+            {
+                Value = _damage,
+                HitPoint = hitInfo.point,
+                HitNormal = hitInfo.normal,
+            };
+            hitInfo.collider.GetComponent<IDamageable>()?.TakeDamage(damageInfo);
         }
 
         // 5. 총알이 없으면 재장전 자동으로

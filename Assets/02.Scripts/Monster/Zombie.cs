@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 // FSM(Finite State Machine/유한 상태 머신) 유한한 상태가 있고, 상태마다 행동을 다르게 함으로써 AI를 구현하는 유명한 방법 
 // - 상태 : 객체가 가질 수 있는 어떤 조건이나 상황
@@ -18,13 +20,14 @@ public enum ZombieState
     Death // 죽음 : 쓰러지고 잠시 뒤 사라진다. 
 }
 
-public class Zombie : MonoBehaviour
+public class Zombie : MonoBehaviour, IDamageable
 {
     [Header("Stat")]
     [SerializeField] private float _detectDistance = 8f;
 
 
     [SerializeField] private float _comebackDistance = 15f;
+    [SerializeField] private float _attackDamage = 10f;
     [SerializeField] private float _attackRange = 1.5f;
     [SerializeField] private float _attackInterval = 1.2f;
     [SerializeField] private float _moveSpeed = 5f;
@@ -51,16 +54,28 @@ public class Zombie : MonoBehaviour
     public float MaxHealth => _maxHealth;
     public float Health => _health;
 
+    // 체력이 바뀔 때마다 알린다. (체력바가 구독)
+    public event Action OnHealthChanged;
+
+    private void Awake()
+    {
+        // 구독자(체력바)가 Start 에서 처음 값을 읽을 수 있도록 Awake 에서 초기화한다.
+        _health = _maxHealth;
+    }
+
     private void Start()
     {
         _controller = GetComponent<CharacterController>();
         _startPosition = transform.position;
         _player = GameObject.FindGameObjectWithTag("Player");
-        _health = _maxHealth;
+
+        GameManager.Instance.RegisterZombie();
     }
 
     private void Update()
     {
+        if (GameManager.Instance.State != GameState.Playing) return;
+
         switch (_state)
         {
             case ZombieState.Idle:
@@ -236,20 +251,28 @@ public class Zombie : MonoBehaviour
         if (_attackTimer >= _attackInterval)
         {
             // Todo. 공격 애니메이션 실행
-            // Todo. 플레이러르 때려 !
-            //GameLogger.Log("플레이어를 때렸습니다.");
+
+            DamageInfo damageInfo = new DamageInfo()
+            {
+                Value = _attackDamage,
+                HitPoint = _player.transform.position,
+                HitNormal = (transform.position - _player.transform.position).normalized,
+            };
+            _player.GetComponent<IDamageable>()?.TakeDamage(damageInfo);
+
             _attackTimer = 0f;
         }
     }
 
-    public void TakeDamage(float damage)
+    public void TakeDamage(DamageInfo damageInfo)
     {
         if (_state == ZombieState.Death)
         {
             return;
         }
 
-        _health -= damage;
+        _health = Mathf.Max(0f, _health - damageInfo.Value);
+        OnHealthChanged?.Invoke();
 
         StopAllCoroutines();
 
@@ -278,6 +301,14 @@ public class Zombie : MonoBehaviour
         GameLogger.Log($"{_state} -> Death ");
         _state = ZombieState.Death; // 사망.
 
+        // 1. 죽는 순간 남은 좀비 수에서 뺀다.
+        GameManager.Instance.UnregisterZombie();
+
+        // 2. 쓰러진 몸에 길이 막히지 않게 충돌을 끈다.
+        _controller.enabled = false;
+
+        // 3. 잠시 뒤 사라진다.
         yield return new WaitForSeconds(0.5f);
+        Destroy(gameObject);
     }
 }

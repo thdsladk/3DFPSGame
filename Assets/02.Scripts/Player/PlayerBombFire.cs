@@ -12,6 +12,8 @@ public class PlayerBombFire : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance.State != GameState.Playing) return;
+
         if (_isChaging)
         {
             _powerGauge = Mathf.Min(MaxChagingTime, _powerGauge + Time.deltaTime);

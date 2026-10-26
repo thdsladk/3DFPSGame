@@ -8,7 +8,7 @@ public class PlayerStamina : MonoBehaviour
     [SerializeField] private float _recoveryPerSecond = 15f;
 
     public float Current { get; private set; }
-    public float Max => _maxStamina;
+    public float MaxStamina => _maxStamina;
 
     private void Awake()
     {
