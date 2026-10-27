@@ -359,16 +359,19 @@ public class Zombie : MonoBehaviour, IDamageable
             // 공격 애니메이션 실행 (AttackDelay → Attack, 끝나면 다시 AttackDelay)
             _animator.SetTrigger(StartAttackHash);
 
-            DamageInfo damageInfo = new DamageInfo()
-            {
-                Value = _attackDamage,
-                HitPoint = _player.transform.position,
-                HitNormal = (transform.position - _player.transform.position).normalized,
-            };
-            _player.GetComponent<IDamageable>()?.TakeDamage(damageInfo);
-
             _attackTimer = 0f;
         }
+    }
+
+    public void AttackAction()
+    {
+        DamageInfo damageInfo = new DamageInfo()
+        {
+            Value = _attackDamage,
+            HitPoint = _player.transform.position,
+            HitNormal = (transform.position - _player.transform.position).normalized,
+        };
+        _player.GetComponent<IDamageable>()?.TakeDamage(damageInfo);
     }
 
     public void TakeDamage(DamageInfo damageInfo)
@@ -422,7 +425,8 @@ public class Zombie : MonoBehaviour, IDamageable
     {
         StopAgent();
 
-        GameLogger.Log($"{_state} -> Death ");
+        //GameLogger.Log($"{_state} -> Death ");
+        _animator.SetTrigger("Death");
         _state = ZombieState.Death; // 사망.
 
         // 1. 죽는 순간 남은 좀비 수에서 뺀다.
@@ -432,7 +436,7 @@ public class Zombie : MonoBehaviour, IDamageable
         _collider.enabled = false;
 
         // 3. 잠시 뒤 사라진다.
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(2f);
 
 
         Destroy(gameObject);
