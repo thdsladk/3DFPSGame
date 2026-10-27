@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.AI;
 using Random = UnityEngine.Random;
 
 // FSM(Finite State Machine/유한 상태 머신) 유한한 상태가 있고, 상태마다 행동을 다르게 함으로써 AI를 구현하는 유명한 방법 
@@ -20,6 +21,7 @@ public enum ZombieState
     Death // 죽음 : 쓰러지고 잠시 뒤 사라진다. 
 }
 
+[RequireComponent(typeof(NavMeshAgent))]
 public class Zombie : MonoBehaviour, IDamageable
 {
     [Header("Stat")]
@@ -44,13 +46,20 @@ public class Zombie : MonoBehaviour, IDamageable
     [SerializeField] private float _idleWaitTime = 2f; // 지점에 도착한 뒤 다음 지점으로 가기 전까지 쉬는 시간
     [SerializeField] private float _arriveDistance = 0.5f; // 이 거리 안이면 도착한 것으로 본다
 
+    [Header("Navigation")]
+    [SerializeField] private float _navMeshSampleRadius = 2f; // 위치를 NavMesh 위로 맞출 때 찾아볼 반경 (Base Offset 보다 커야 함)
+    [SerializeField] private int _patrolPointAttempts = 10; // 갈 수 있는 순찰 지점을 찾을 때 시도할 횟수
+
+    private NavMeshPath _path; // 경로 계산용. 매번 새로 만들지 않도록 하나를 재사용한다.
+
     private float _attackTimer = 0f;
     private float _idleTimer = 0f;
     private float _patrolTimer = 0f;
     private Vector3 _patrolTarget;
-    private CharacterController _controller;
     private Vector3 _startPosition;
     private GameObject _player;
+    private NavMeshAgent _agent;
+    private CapsuleCollider _collider;
 
     private ZombieState _state = ZombieState.Idle;
 
@@ -68,9 +77,12 @@ public class Zombie : MonoBehaviour, IDamageable
 
     private void Start()
     {
-        _controller = GetComponent<CharacterController>();
         _startPosition = transform.position;
         _player = GameObject.FindGameObjectWithTag("Player");
+        _collider = GetComponent<CapsuleCollider>();
+        _agent = GetComponent<NavMeshAgent>();
+        _agent.speed = _moveSpeed;
+        _path = new NavMeshPath();
 
         GameManager.Instance.RegisterZombie();
     }
@@ -117,6 +129,7 @@ public class Zombie : MonoBehaviour, IDamageable
     private void Idle()
     {
         // 대기 : 제자리에서 플레이어를 기다린다.
+        StopAgent();
 
         // 플레이어 가까워지면 Trace
         float distance = Vector3.Distance(transform.position, _player.transform.position);
@@ -144,6 +157,13 @@ public class Zombie : MonoBehaviour, IDamageable
         offsetFromStart.y = 0f;
         bool isNearStart = offsetFromStart.magnitude <= _arriveDistance * 2f;
 
+        // 처음 자리로 돌아갈 길이 없으면 (절벽 아래로 내려온 경우 등) 지금 자리를 새 처음 자리로 삼는다.
+        if (isNearStart == false && HasCompletePath(transform.position, _startPosition) == false)
+        {
+            SetNewStartPosition();
+            isNearStart = true;
+        }
+
         _patrolTarget = isNearStart ? GetRandomPatrolPoint() : _startPosition;
         _patrolTimer = 0f;
 
@@ -152,15 +172,59 @@ public class Zombie : MonoBehaviour, IDamageable
     }
 
     // 처음 자리에서 순찰 거리만큼 떨어진 원 위의 랜덤 지점
+    // 순찰 중에 절벽 아래로 뛰어내리지 않도록, 처음 자리에서 갔다가 다시 돌아올 수 있는 지점만 고른다.
     private Vector3 GetRandomPatrolPoint()
     {
-        Vector2 randomDirection = Random.insideUnitCircle.normalized;
-        if (randomDirection == Vector2.zero)
+        for (int i = 0; i < _patrolPointAttempts; i++)
         {
-            randomDirection = Vector2.right;
+            // 1. 처음 자리 둘레의 랜덤 방향 지점을 고른다.
+            Vector2 randomDirection = Random.insideUnitCircle.normalized;
+            if (randomDirection == Vector2.zero)
+            {
+                randomDirection = Vector2.right;
+            }
+
+            Vector3 point = _startPosition + new Vector3(randomDirection.x, 0f, randomDirection.y) * _patrolDistance;
+
+            // 2. NavMesh 위의 가장 가까운 자리로 맞춘다. 근처에 NavMesh가 없으면 다시 뽑는다.
+            if (NavMesh.SamplePosition(point, out NavMeshHit hit, _navMeshSampleRadius, _agent.areaMask) == false)
+            {
+                continue;
+            }
+
+            // 3. 갔다가 돌아올 수 있는 지점이면 사용한다.
+            if (HasCompletePath(_startPosition, hit.position) && HasCompletePath(hit.position, _startPosition))
+            {
+                return hit.position;
+            }
         }
 
-        return _startPosition + new Vector3(randomDirection.x, 0f, randomDirection.y) * _patrolDistance;
+        // 갈 수 있는 지점을 못 찾으면 처음 자리에 머문다.
+        return _startPosition;
+    }
+
+    // from 에서 to 까지 끝까지 이어진 길이 있는지 (절벽 링크는 내려가는 방향만 있으므로 올라가는 길은 없다)
+    private bool HasCompletePath(Vector3 from, Vector3 to)
+    {
+        if (NavMesh.SamplePosition(from, out NavMeshHit fromHit, _navMeshSampleRadius, _agent.areaMask) == false)
+        {
+            return false;
+        }
+
+        if (NavMesh.SamplePosition(to, out NavMeshHit toHit, _navMeshSampleRadius, _agent.areaMask) == false)
+        {
+            return false;
+        }
+
+        return NavMesh.CalculatePath(fromHit.position, toHit.position, _agent.areaMask, _path)
+            && _path.status == NavMeshPathStatus.PathComplete;
+    }
+
+    // 지금 자리를 새 처음 자리로 삼는다. 이후 순찰·복귀는 이 자리를 기준으로 한다.
+    private void SetNewStartPosition()
+    {
+        _startPosition = transform.position;
+        GameLogger.Log($"[Zombie] 처음 자리로 돌아갈 길이 없어 새 처음 자리를 잡음 : {_startPosition}");
     }
 
     private void Patrol()
@@ -188,10 +252,11 @@ public class Zombie : MonoBehaviour, IDamageable
             return;
         }
 
-        direction.Normalize();
-
-        transform.forward = direction;
-        _controller.SimpleMove(direction * _patrolSpeed);
+        //direction.Normalize();
+        //
+        //transform.forward = direction;
+        //_controller.SimpleMove(direction * _patrolSpeed);
+        _agent.SetDestination(_patrolTarget);
     }
 
     private void Trace()
@@ -200,8 +265,7 @@ public class Zombie : MonoBehaviour, IDamageable
 
         if (Vector3.Distance(transform.position, _startPosition) > _comebackDistance)
         {
-            GameLogger.Log($"{_state} -> Comeback");
-            _state = ZombieState.Comeback;
+            StartComeback();
             return;
         }
 
@@ -215,33 +279,53 @@ public class Zombie : MonoBehaviour, IDamageable
             return;
         }
 
-        Vector3 direction = _player.transform.position - transform.position;
-        direction.y = 0f;
-        direction.Normalize();
+        //SetDestination은 목적지 설정
+        // - 호출할 때마다 목적지를 향해 조금씩 이동 (X)
+        // - 한 번 세팅하면 내부에서 계속 이동 (O)
+        _agent.SetDestination(_player.transform.position);
+    }
 
-        transform.forward = direction;
-        _controller.SimpleMove(direction * _moveSpeed);
+    // 추격을 멈추고 처음 자리로 돌아가기 시작한다.
+    private void StartComeback()
+    {
+        // 처음 자리로 돌아갈 길이 없으면 (절벽 아래로 뛰어내린 경우 등) 지금 자리를 새 처음 자리로 삼고 대기한다.
+        if (HasCompletePath(transform.position, _startPosition) == false)
+        {
+            SetNewStartPosition();
+            GameLogger.Log($"{_state} -> Idle");
+            _state = ZombieState.Idle;
+            return;
+        }
+
+        GameLogger.Log($"{_state} -> Comeback");
+        _state = ZombieState.Comeback;
+        _agent.SetDestination(_startPosition);
     }
 
     private void Comback()
     {
-        if (Vector3.Distance(transform.position, _startPosition) < 1f)
+        // pathStatus 는 "도착했다"가 아니라 "경로를 찾았다"는 뜻이므로, 남은 거리로 도착을 판단한다.
+        if (_agent.pathPending == false && _agent.remainingDistance <= _arriveDistance)
         {
             GameLogger.Log($"{_state} -> Idle");
             _state = ZombieState.Idle;
             return;
         }
 
-        Vector3 direction = _startPosition - transform.position;
-        direction.y = 0f;
-        direction.Normalize();
-
-        transform.forward = direction;
-        _controller.SimpleMove(direction * _moveSpeed);
+        //Vector3 direction = _startPosition - transform.position;
+        //direction.y = 0f;
+        //direction.Normalize();
+        //
+        //transform.forward = direction;
+        //_controller.SimpleMove(direction * _moveSpeed);
+        // 목적지는 StartComeback 에서 한 번만 정한다. 매 프레임 다시 정하면 경로를 계속 새로 계산해서 남은 거리가 흔들린다.
     }
 
     private void Attack()
     {
+        // 공격 시작  
+        StopAgent();
+
         // 플레이어가 공격 사정 거리를 벗어나면 
         float distance = Vector3.Distance(transform.position, _player.transform.position);
         if (distance > _attackRange)
@@ -304,16 +388,21 @@ public class Zombie : MonoBehaviour, IDamageable
 
     private IEnumerator Hit_Coroutine()
     {
+        StopAgent();
+
         GameLogger.Log($"{_state} -> Hit ");
         _state = ZombieState.Hit; // 잠깐 멈칫 한다.
 
         yield return new WaitForSeconds(0.3f);
+
 
         _state = ZombieState.Trace;
     }
 
     private IEnumerator Death_Coroutine()
     {
+        StopAgent();
+
         GameLogger.Log($"{_state} -> Death ");
         _state = ZombieState.Death; // 사망.
 
@@ -321,10 +410,21 @@ public class Zombie : MonoBehaviour, IDamageable
         GameManager.Instance.UnregisterZombie();
 
         // 2. 쓰러진 몸에 길이 막히지 않게 충돌을 끈다.
-        _controller.enabled = false;
+        _collider.enabled = false;
 
         // 3. 잠시 뒤 사라진다.
         yield return new WaitForSeconds(0.5f);
+
+
         Destroy(gameObject);
+    }
+
+    private void StopAgent()
+    {
+        // 절벽 링크를 지나는(뛰어내리는) 중에 멈추면 링크 위에 걸리므로, 착지할 때까지는 멈추지 않는다.
+        if (_agent.isOnOffMeshLink) return;
+
+        _agent.ResetPath(); // 에이전트의 목적지 삭제
+        _agent.velocity = Vector3.zero; // 미끄럼 방지를 위해서 속도를 0으로 맞춰주기 
     }
 }
