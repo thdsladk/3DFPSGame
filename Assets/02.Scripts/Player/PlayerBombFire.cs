@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class PlayerBombFire : MonoBehaviour
@@ -7,8 +8,24 @@ public class PlayerBombFire : MonoBehaviour
     [SerializeField] private float _throwPower;
     [SerializeField] private int _ammo = 10;
     [SerializeField] private float _powerGauge = 0f;
+    [SerializeField] private int _bombPoolSize = 5; // 미리 만들어 둘 폭탄 수
     private const float MaxChagingTime = 2f;
     private bool _isChaging = false;
+    private ObjectPool<Bomb> _bombPool;
+    private int _maxAmmo; // 처음 가진 폭탄 수
+
+    public int Ammo => _ammo;
+    public int MaxAmmo => _maxAmmo;
+
+    // 폭탄 수가 바뀔 때마다 알린다. (UI_Ammo 가 구독)
+    public event Action OnAmmoChanged;
+
+    private void Awake()
+    {
+        // 폭탄은 플레이어를 따라다니지 않도록 부모 없이 만든다.
+        _bombPool = new ObjectPool<Bomb>(_bombPrepab, _bombPoolSize);
+        _maxAmmo = _ammo;
+    }
 
     private void Update()
     {
@@ -38,13 +55,13 @@ public class PlayerBombFire : MonoBehaviour
         {
             // 1. 폭탄 갯수 감소
             _ammo--;
-            // 2. 발사 위치에서 수류탄 생성하기 
-            Bomb bomb = Instantiate(_bombPrepab, _firePoint.position, Quaternion.identity);
+            OnAmmoChanged?.Invoke();
+            // 2. 풀에서 수류탄을 꺼내 발사 위치에 둔다.
+            Bomb bomb = _bombPool.Get(_firePoint.position, Quaternion.identity);
 
-            // 3. 생성된 수류탄을 시선 방향으로 던지기
-            Rigidbody rigidbody = bomb.GetComponent<Rigidbody>();
+            // 3. 꺼낸 수류탄을 시선 방향으로 던지기
             Vector3 force = Camera.main.transform.forward * (_throwPower * _powerGauge);
-            rigidbody.AddForce(force, ForceMode.Impulse);
+            bomb.Launch(_bombPool, force);
 
             // 4. 게이지 초기화
             _powerGauge = 0f;

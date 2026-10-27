@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-// 역할 : 화면 위쪽에 남은 좀비 수를 표시한다. GameManager 의 이벤트를 구독해서 바뀔 때만 갱신한다.
+// 역할 : 화면 위쪽에 남은 좀비 수 / 최대 좀비 수를 표시한다. GameManager 의 이벤트를 구독해서 바뀔 때만 갱신한다. (옵저버 패턴)
 public class UI_ZombieCount : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI _countText;
@@ -26,6 +26,6 @@ public class UI_ZombieCount : MonoBehaviour
 
     private void Refresh()
     {
-        _countText.text = $"남은 좀비 : {GameManager.Instance.ZombieCount}";
+        _countText.text = $"남은 좀비 : {GameManager.Instance.ZombieCount} / {GameManager.Instance.MaxZombieCount}";
     }
 }

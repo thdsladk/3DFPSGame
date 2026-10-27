@@ -21,10 +21,13 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private TextMeshProUGUI _stateText;
 
-    private int _zombieCount = 0;
-    public int ZombieCount => _zombieCount;
+    private int _maxZombieCount = 0; // 이번 판에 나올 전체 좀비 수 (씬에 놓인 좀비 + 스포너가 만들 좀비)
+    private int _killedZombieCount = 0; // 지금까지 죽은 좀비 수
 
-    // 남은 좀비 수가 바뀔 때마다 알린다. (UI_ZombieCount 가 구독)
+    public int MaxZombieCount => _maxZombieCount;
+    public int ZombieCount => _maxZombieCount - _killedZombieCount; // 남은 좀비 수 (아직 스폰되지 않은 좀비 포함)
+
+    // 남은 좀비 수나 최대 좀비 수가 바뀔 때마다 알린다. (UI_ZombieCount 가 구독)
     public event Action OnZombieCountChanged;
 
 
@@ -65,17 +68,17 @@ public class GameManager : MonoBehaviour
         _stateText.color = Color.red;
     }
 
-    // 좀비가 생성되면 호출한다.
-    public void RegisterZombie()
+    // 이번 판에 나올 좀비 수를 더한다. 씬에 놓인 좀비는 1, 스포너는 만들 전체 수를 넘긴다.
+    public void RegisterZombie(int count = 1)
     {
-        _zombieCount++;
+        _maxZombieCount += count;
         OnZombieCountChanged?.Invoke();
     }
 
     // 좀비가 죽으면 호출한다.
     public void UnregisterZombie()
     {
-        _zombieCount = Mathf.Max(0, _zombieCount - 1);
+        _killedZombieCount = Mathf.Min(_maxZombieCount, _killedZombieCount + 1);
         OnZombieCountChanged?.Invoke();
     }
 }
