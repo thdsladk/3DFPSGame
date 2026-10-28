@@ -24,7 +24,6 @@ public class PlayerGunFire : MonoBehaviour
 
     private const float LaserFallbackDropHeight = 0.2f; // 총구가 없을 때 카메라보다 이만큼 아래에서 레이저를 시작한다
 
-    private float _fireTimer = 0f;
     private Coroutine _reloadCoroutine; // 장전 중이면 실행 중인 코루틴, 아니면 null
     private Coroutine _laserCoroutine; // 레이저를 보이고 있으면 실행 중인 코루틴, 아니면 null
     private WaitForSeconds _laserWait; // 쏠 때마다 새로 만들지 않도록 재사용한다
@@ -32,6 +31,15 @@ public class PlayerGunFire : MonoBehaviour
     public bool IsReloading => _reloadCoroutine != null;
     public int Ammo => _ammo;
     public int MaxAmmo => _maxAmmo;
+    public float FireInterval => _fireInterval;
+    public int ShotCount { get; private set; } // 지금까지 쏜 횟수 (발사 애니메이션이 이벤트로 제대로 쐈는지 확인할 때 쓴다)
+
+    // 쏘고 싶은 상태인지. 마우스 왼쪽 버튼을 누르고 있고, 총알이 있고, 게임 중이며, Alt로 커서를 푼 상태가 아니어야 한다.
+    public bool WantsToFire =>
+        GameManager.Instance.State == GameState.Playing
+        && CursorManager.IsCursorFree == false
+        && _ammo > 0
+        && Input.GetButton("Fire1");
 
     // 총알 수나 장전 여부가 바뀔 때마다 알린다. (UI_Ammo 가 구독)
     public event Action OnAmmoChanged;
@@ -54,27 +62,24 @@ public class PlayerGunFire : MonoBehaviour
     {
         if (GameManager.Instance.State != GameState.Playing) return;
 
-        // 0. 발사 타이머를 지난 시간만큼 줄인다.
-        _fireTimer -= Time.deltaTime;
-
-        // Alt로 커서를 풀어 UI 버튼을 누르는 중이면 쏘거나 재장전하지 않는다.
+        // Alt로 커서를 풀어 UI 버튼을 누르는 중이면 재장전하지 않는다.
         if (CursorManager.IsCursorFree) return;
 
-        // 1. 재장전 입력 받기
+        // 재장전 입력 받기. (발사는 Player 의 발사 상태가 애니메이션 이벤트로 TryShoot 을 불러서 한다)
         if (Input.GetButtonDown("Reload") && _reloadCoroutine == null)
         {
             StartReload();
         }
+    }
 
-        // 2. 마우스 왼쪽 버튼 입력 받기
-        if (Input.GetButton("Fire1") && _fireTimer <= 0f && (_ammo > 0))
-        {
-            // 발사하면 재장전 꺼짐
-            StopReload();
+    // 총알이 있으면 한 발 쏜다. 발사 애니메이션의 총을 쏘는 프레임에서 불린다. (발사 간격은 애니메이션 재생 속도가 정한다)
+    public void TryShoot()
+    {
+        if (_ammo <= 0) return;
 
-            _fireTimer = _fireInterval;
-            Shoot();
-        }
+        // 발사하면 재장전 꺼짐
+        StopReload();
+        Shoot();
     }
 
     // 재장전을 시작한다. 이미 장전 중이거나 탄창이 가득 차 있으면 무시한다.
@@ -122,6 +127,7 @@ public class PlayerGunFire : MonoBehaviour
 
         // 1. 총알 소모
         _ammo--;
+        ShotCount++;
         GameLogger.Log($"Ammo: {_ammo}");
         OnAmmoChanged?.Invoke();
 
@@ -148,14 +154,7 @@ public class PlayerGunFire : MonoBehaviour
             //{
             //    zombie.TakeDamage(_damage);
             //}
-            DamageInfo damageInfo = new DamageInfo()
-            {
-                Value = _damage,
-                HitPoint = hitInfo.point,
-                HitNormal = hitInfo.normal,
-            };
-            // 좀비 코처럼 자식 콜라이더에 맞아도 대미지가 들어가도록 부모까지 찾는다.
-            hitInfo.collider.GetComponentInParent<IDamageable>()?.TakeDamage(damageInfo);
+            AttackAction(hitInfo);
         }
 
         // 5. 총구에서 맞은 곳까지(안 맞았으면 사거리 끝까지) 레이저를 잠깐 그린다.
@@ -167,6 +166,18 @@ public class PlayerGunFire : MonoBehaviour
         {
             StartReload();
         }
+    }
+
+    public void AttackAction(RaycastHit hitInfo)
+    {
+        DamageInfo damageInfo = new DamageInfo()
+        {
+            Value = _damage,
+            HitPoint = hitInfo.point,
+            HitNormal = hitInfo.normal,
+        };
+        // 좀비 코처럼 자식 콜라이더에 맞아도 대미지가 들어가도록 부모까지 찾는다.
+        hitInfo.collider.GetComponentInParent<IDamageable>()?.TakeDamage(damageInfo);
     }
 
     private void ShowLaser(Vector3 end)

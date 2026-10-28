@@ -24,8 +24,6 @@ public class CameraViewChanger : MonoBehaviour
 {
     [SerializeField] private Transform _player; // 비워두면 PlayerRotate를 자동으로 찾는다
     [SerializeField] private Transform _eyePosition; // 비워두면 플레이어의 자식 CameraPosition을 찾는다
-    [SerializeField] private Transform _nose; // 비워두면 플레이어의 자식 Nose를 찾는다 (1인칭에서 바라볼 정면)
-    [SerializeField] private float _eyeHeightAboveNose = 0.2f; // 1인칭 눈 위치를 Nose보다 얼마나 위에 둘지
     [SerializeField] private float _transitionDuration = 0.3f;
 
     [SerializeField]
@@ -66,11 +64,9 @@ public class CameraViewChanger : MonoBehaviour
 
         if (_player == null && _playerRotate != null) _player = _playerRotate.transform;
         if (_eyePosition == null && _player != null) _eyePosition = _player.Find("CameraPosition");
-        if (_nose == null && _player != null) _nose = _player.Find("Nose");
 
         if (_player == null) Debug.LogWarning("[CameraViewChanger] No player found");
         if (_eyePosition == null) Debug.LogWarning("[CameraViewChanger] No CameraPosition found");
-        if (_nose == null) Debug.LogWarning("[CameraViewChanger] No Nose found");
 
         // 시작할 때는 전환 연출 없이 바로 첫 번째 시점으로 둔다.
         _transitionElapsed = _transitionDuration;
@@ -128,22 +124,10 @@ public class CameraViewChanger : MonoBehaviour
 
     private void CalculateTargetPose(CameraViewSettings settings, out Vector3 position, out Quaternion rotation)
     {
-        if (settings.View == CameraView.FirstPerson && _nose != null)
+        if (settings.UseMouseLook)
         {
-            // 1인칭 : 플레이어 중심에서 Nose 쪽을 정면으로 보고, 눈은 Nose보다 조금 위에 둔다.
-            var noseDirection = _nose.position - _player.position;
-            noseDirection.y = 0f;
-            var yaw = noseDirection.sqrMagnitude > 0.0001f
-                ? Quaternion.LookRotation(noseDirection).eulerAngles.y
-                : _player.eulerAngles.y;
-
-            var pitch = _cameraRotate != null ? _cameraRotate.Pitch : 0f;
-            rotation = Quaternion.Euler(pitch, yaw, 0f);
-            position = _nose.position + Vector3.up * _eyeHeightAboveNose;
-        }
-        else if (settings.UseMouseLook)
-        {
-            // 좌우는 플레이어 방향, 위아래는 마우스로 정한 각도를 쓰고 눈 위치를 기준으로 오프셋만큼 떨어진다.
+            // 좌우는 플레이어 방향, 위아래는 마우스로 정한 각도를 쓰고 눈 위치(CameraPosition)를 기준으로 오프셋만큼 떨어진다.
+            // 1인칭은 오프셋이 0이라서 카메라가 CameraPosition 자리에 그대로 놓인다.
             var pitch = _cameraRotate != null ? _cameraRotate.Pitch : 0f;
             rotation = Quaternion.Euler(pitch, _player.eulerAngles.y, 0f);
             position = _eyePosition.position + rotation * settings.Offset;

@@ -24,6 +24,7 @@ public class PlayerMove : MonoBehaviour
     private Vector3 _horizontalVelocity = Vector3.zero;
 
     public Vector3 HorizontalVelocity => _horizontalVelocity;
+    public float MoveSpeed => _moveSpeed;
 
     private void Awake()
     {
