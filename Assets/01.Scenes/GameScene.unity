@@ -772,7 +772,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
+  near clip plane: 0.22
   far clip plane: 1000
   field of view: 60
   orthographic: 0
@@ -879,8 +879,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CameraViewChanger
   _player: {fileID: 1770831404}
   _eyePosition: {fileID: 1279713976}
-  _nose: {fileID: 0}
-  _eyeHeightAboveNose: 0.2
   _transitionDuration: 0.3
   _views:
   - View: 0
@@ -1957,23 +1955,6 @@ MonoBehaviour:
   _mapNameText: {fileID: 420485625}
   _zoomInButton: {fileID: 752552061}
   _zoomOutButton: {fileID: 814451491}
---- !u!1 &593855745 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5765544125280228603, guid: f53e1abf6d957a24995eebcb32bc4be9, type: 3}
-  m_PrefabInstance: {fileID: 4531930657170755711}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &593855748
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 593855745}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f22d41bfef5bf3145a814dd9b5024584, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ZombieHitEvent
 --- !u!1 &650288928
 GameObject:
   m_ObjectHideFlags: 0
@@ -5671,7 +5652,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8979958596354101002, guid: 51333064ca945774e99854c52a6320d7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.77
+      value: 0.95
       objectReference: {fileID: 0}
     - target: {fileID: 8979958596354101002, guid: 51333064ca945774e99854c52a6320d7, type: 3}
       propertyPath: m_LocalPosition.z
@@ -5806,10 +5787,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5765544125280228603, guid: f53e1abf6d957a24995eebcb32bc4be9, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 593855748}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f53e1abf6d957a24995eebcb32bc4be9, type: 3}
 --- !u!1001 &6143698643420155454
 PrefabInstance:

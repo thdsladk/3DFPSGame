@@ -64,8 +64,9 @@ MonoBehaviour:
   _attackRange: 1
   _attackInterval: 1.2
   _moveSpeed: 5
-  _maxHealth: 30
+  _maxHealth: 100
   _health: 100
+  _deathRemoveDelay: 2
   _bloodSprayPrefab: {fileID: 1000013355911406, guid: d32aa916f50cac94db11e6f19821a58f, type: 3}
   _patrolDistance: 5
   _patrolSpeed: 2
@@ -73,6 +74,20 @@ MonoBehaviour:
   _arriveDistance: 0.5
   _navMeshSampleRadius: 2
   _patrolPointAttempts: 10
+  _hitDuration: 0.3
+  _hitRecoverBlendTime: 0.1
+  _maxJumpHeight: 1.5
+  _maxDropHeight: 3
+  _maxJumpDistance: 4
+  _jumpCandidateStep: 0.5
+  _jumpSpeed: 6
+  _jumpArcHeight: 0.5
+  _jumpCheckInterval: 0.3
+  _jumpCooldown: 1
+  _jumpLandBlendTime: 0.1
+  _jumpSurfaceMask:
+    serializedVersion: 2
+    m_Bits: 1
 --- !u!195 &1488745043777392445
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -486,7 +501,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 140, y: 10}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7062440566563340632
 CanvasRenderer:
@@ -664,8 +679,28 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4493914613880827488, guid: 6dc4cf4496348884d8ee27743ae38562, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8642236102695196045}
   m_SourcePrefab: {fileID: 100100000, guid: 6dc4cf4496348884d8ee27743ae38562, type: 3}
+--- !u!1 &5765544125280228603 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4493914613880827488, guid: 6dc4cf4496348884d8ee27743ae38562, type: 3}
+  m_PrefabInstance: {fileID: 7953009898502404763}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8642236102695196045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5765544125280228603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f22d41bfef5bf3145a814dd9b5024584, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ZombieHitEvent
 --- !u!4 &7374655442309211880 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 578376449398627443, guid: 6dc4cf4496348884d8ee27743ae38562, type: 3}

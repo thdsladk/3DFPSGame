@@ -90,7 +90,7 @@ public partial class Zombie : MonoBehaviour, IDamageable
     // Hit·점프가 끝나고 CrossFade 로 돌아갈 애니메이터 상태 (레이어·서브 스테이트 머신까지 포함한 전체 경로)
     private static readonly int IdleStateHash = Animator.StringToHash("Base Layer.Idle");
     private static readonly int MoveStateHash = Animator.StringToHash("Base Layer.Move");
-    private static readonly int AttackDelayStateHash = Animator.StringToHash("Base Layer.AttackProcess.AttackDelay");
+    private static readonly int AttackDelayStateHash = Animator.StringToHash("Base Layer.AttackDelay");
 
     private NavMeshPath _path; // 경로 계산용. 매번 새로 만들지 않도록 하나를 재사용한다.
 
