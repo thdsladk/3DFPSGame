@@ -51,6 +51,7 @@ GameObject:
   - component: {fileID: 334207862009939693}
   - component: {fileID: -8331116245210130681}
   - component: {fileID: 5434166831755026654}
+  - component: {fileID: 4138480466370813076}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -311,6 +312,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStamina
   _maxStamina: 100
   _recoveryPerSecond: 15
+--- !u!114 &4138480466370813076
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1703154904903763429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06a5d2d49a5c12a42ac389c019897c68, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerZoom
 --- !u!1 &2366469353460043911
 GameObject:
   m_ObjectHideFlags: 0
