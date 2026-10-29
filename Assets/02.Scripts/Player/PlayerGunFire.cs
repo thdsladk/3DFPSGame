@@ -111,7 +111,7 @@ public class PlayerGunFire : MonoBehaviour
             yield return wait;
 
             _ammo++;
-            GameLogger.Log($"Ammo: {_ammo}");
+            //GameLogger.Log($"Ammo: {_ammo}");
             OnAmmoChanged?.Invoke();
         }
 
@@ -128,7 +128,7 @@ public class PlayerGunFire : MonoBehaviour
         // 1. 총알 소모
         _ammo--;
         ShotCount++;
-        GameLogger.Log($"Ammo: {_ammo}");
+        //GameLogger.Log($"Ammo: {_ammo}");
         OnAmmoChanged?.Invoke();
 
         // 2. 레이(광선)를 생성하고 발사될 위치와 진행 방향 설정하기
