@@ -65,6 +65,9 @@ public partial class Player : MonoBehaviour, IDamageable
     // Action 자료형 : 함수(들)를 저장할 수 있다. 맞으면 체력바(UI_PlayerStats)에 알린다.
     public event Action OnDamaged;
 
+    // 무기 모드가 바뀌면 알린다. (UI_Ammo 가 구독해 무기 이미지를 바꾼다)
+    public event Action OnWeaponModeChanged;
+
     // 움직이는 중인지 (수평 속도로 판단한다)
     private bool IsMoving => _playerMove.HorizontalVelocity.sqrMagnitude > _moveThreshold * _moveThreshold;
 
@@ -115,15 +118,24 @@ public partial class Player : MonoBehaviour, IDamageable
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            _weaponMode = WeaponMode.Normal;
+            ChangeWeaponMode(WeaponMode.Normal);
         }
         else if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            _weaponMode = WeaponMode.Sniper;
+            ChangeWeaponMode(WeaponMode.Sniper);
         }
 
         UpdateMoveAnimation();
         _currentState.Update();
+    }
+
+    // 무기 모드를 바꾸고, 실제로 바뀌었을 때만 구독자(UI)에게 알린다.
+    private void ChangeWeaponMode(WeaponMode nextMode)
+    {
+        if (_weaponMode == nextMode) return;
+
+        _weaponMode = nextMode;
+        OnWeaponModeChanged?.Invoke();
     }
 
     // 지금 상태를 나가고(Exit) 다음 상태로 들어간다(Enter). 발사 애니메이션 값도 함께 바꾼다.
