@@ -9,7 +9,10 @@ public class PlayerBombFire : MonoBehaviour
     [SerializeField] private int _ammo = 10;
     [SerializeField] private float _powerGauge = 0f;
     [SerializeField] private int _bombPoolSize = 5; // 미리 만들어 둘 폭탄 수
-    [SerializeField] private float _holdNormalizedTime = 0.64f; // 버튼을 누르고 있는 동안 던지기 모션을 멈춰 둘 지점 (손을 놓는 ThrowEvent 0.66 바로 앞)
+
+    [SerializeField]
+    private float _holdNormalizedTime = 0.64f; // 버튼을 누르고 있는 동안 던지기 모션을 멈춰 둘 지점 (손을 놓는 ThrowEvent 0.66 바로 앞)
+
     private const float MaxChagingTime = 2f;
     private const string ThrowLayerName = "ThrowBomb Layer"; // 애니메이터의 레이어 이름과 똑같아야 한다
     private static readonly int ThrowBombHash = Animator.StringToHash("ThrowBomb"); // 던지는 애니메이션 트리거
@@ -24,6 +27,7 @@ public class PlayerBombFire : MonoBehaviour
     private Animator _animator;
     private int _throwLayerIndex;
     private int _maxAmmo; // 처음 가진 폭탄 수
+    private Player _player;
 
     public int Ammo => _ammo;
     public int MaxAmmo => _maxAmmo;
@@ -38,6 +42,7 @@ public class PlayerBombFire : MonoBehaviour
         _maxAmmo = _ammo;
         _animator = GetComponentInChildren<Animator>();
         _throwLayerIndex = _animator.GetLayerIndex(ThrowLayerName);
+        _player = GetComponent<Player>();
     }
 
     private void Update()
@@ -51,7 +56,7 @@ public class PlayerBombFire : MonoBehaviour
         }
 
         // 1. 마우스 오른쪽 버튼 입력 받기 : 누르면 던지기 시작, 떼면 손을 놓는다.
-        if (Input.GetButtonDown("Fire2"))
+        if (Input.GetButtonDown("Fire2") && _player.WeaponMode == WeaponMode.Normal)
         {
             StartThrow();
         }

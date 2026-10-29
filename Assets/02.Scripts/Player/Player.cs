@@ -33,7 +33,8 @@ public partial class Player : MonoBehaviour, IDamageable
     [SerializeField] private float _fireAnimationLength = 0.5f; // 발사 애니메이션 클립 길이 (초)
     [SerializeField] private float _maxFireAnimationSpeed = 5f; // 연사가 빠를 때 발사 애니메이션을 최대 몇 배까지 빠르게 재생할지
 
-    [SerializeField] private float _injuredStartHealthRatio = 0.7f; // 체력이 이 비율 아래로 내려가면 다친 모션이 섞이기 시작한다 (위험 비율에서 완전히 다친 모션)
+    [SerializeField]
+    private float _injuredStartHealthRatio = 0.7f; // 체력이 이 비율 아래로 내려가면 다친 모션이 섞이기 시작한다 (위험 비율에서 완전히 다친 모션)
 
     // 애니메이터 트리거·값. 문자열로 매번 찾지 않도록 해시로 한 번만 바꿔 둔다.
     private static readonly int MoveMotionHash = Animator.StringToHash("MoveMotion");
@@ -52,6 +53,9 @@ public partial class Player : MonoBehaviour, IDamageable
     private Animator _animator;
     private PlayerMove _playerMove;
     private PlayerGunFire _gunFire;
+
+    private WeaponMode _weaponMode = WeaponMode.Normal;
+    public WeaponMode WeaponMode => _weaponMode;
 
     // UI가 읽어 가는 값 (읽기만 할 수 있다)
     public float MaxHealth => _maxHealth;
@@ -105,6 +109,15 @@ public partial class Player : MonoBehaviour, IDamageable
     private void Update()
     {
         if (GameManager.Instance.State != GameState.Playing) return;
+
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            _weaponMode = WeaponMode.Normal;
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            _weaponMode = WeaponMode.Sniper;
+        }
 
         UpdateMoveAnimation();
         _currentState.Update();
