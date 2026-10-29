@@ -24,13 +24,14 @@ public class PlayerGunFire : MonoBehaviour
     [SerializeField] private LineRenderer _laserLine; // 총을 쏠 때 총구에서 맞은 곳까지 그릴 선
 
     [SerializeField] private Transform _muzzle; // 레이저가 시작되는 총구 (비우면 카메라 조금 아래에서 시작)
-    [SerializeField] private float _laserDuration = 0.05f; // 레이저가 보이는 시간 (초)
+    [SerializeField] private float _laserDuration = 0.15f; // 총선 흔적이 서서히 사라지는 데 걸리는 시간 (초)
 
     private const float LaserFallbackDropHeight = 0.2f; // 총구가 없을 때 카메라보다 이만큼 아래에서 레이저를 시작한다
 
     private Coroutine _reloadCoroutine; // 장전 중이면 실행 중인 코루틴, 아니면 null
     private Coroutine _laserCoroutine; // 레이저를 보이고 있으면 실행 중인 코루틴, 아니면 null
-    private WaitForSeconds _laserWait; // 쏠 때마다 새로 만들지 않도록 재사용한다
+    private Color _laserStartColor; // 처음 색 (흐려졌다가 다음 발사에서 되돌릴 때 쓴다)
+    private Color _laserEndColor;
 
     public bool IsReloading => _reloadCoroutine != null;
     public int Ammo => _ammo;
@@ -53,12 +54,13 @@ public class PlayerGunFire : MonoBehaviour
         _ammo = _maxAmmo;
 
         // 레이저는 점 두 개(총구, 맞은 곳)로 그리고, 쏘기 전에는 숨겨 둔다.
-        _laserWait = new WaitForSeconds(_laserDuration);
         if (_laserLine != null)
         {
             _laserLine.positionCount = 2;
             _laserLine.useWorldSpace = true;
             _laserLine.enabled = false;
+            _laserStartColor = _laserLine.startColor;
+            _laserEndColor = _laserLine.endColor;
         }
     }
 
@@ -211,9 +213,19 @@ public class PlayerGunFire : MonoBehaviour
         _laserLine.SetPosition(1, end);
         _laserLine.enabled = true;
 
-        // 2. 잠깐 뒤 숨긴다.
-        yield return _laserWait;
+        // 2. 보이는 시간 동안 점점 투명해지며 흔적이 사라진다.
+        float elapsed = 0f;
+        while (elapsed < _laserDuration)
+        {
+            float alpha = 1f - elapsed / _laserDuration;
+            _laserLine.startColor = new Color(_laserStartColor.r, _laserStartColor.g, _laserStartColor.b, _laserStartColor.a * alpha);
+            _laserLine.endColor = new Color(_laserEndColor.r, _laserEndColor.g, _laserEndColor.b, _laserEndColor.a * alpha);
 
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // 3. 다 사라지면 숨긴다.
         _laserLine.enabled = false;
         _laserCoroutine = null;
     }
