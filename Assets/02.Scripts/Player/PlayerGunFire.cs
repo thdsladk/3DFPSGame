@@ -32,6 +32,7 @@ public class PlayerGunFire : MonoBehaviour
     private Coroutine _laserCoroutine; // 레이저를 보이고 있으면 실행 중인 코루틴, 아니면 null
     private Color _laserStartColor; // 처음 색 (흐려졌다가 다음 발사에서 되돌릴 때 쓴다)
     private Color _laserEndColor;
+    private Player _player;
 
     public bool IsReloading => _reloadCoroutine != null;
     public int Ammo => _ammo;
@@ -40,9 +41,11 @@ public class PlayerGunFire : MonoBehaviour
     public int ShotCount { get; private set; } // 지금까지 쏜 횟수 (발사 애니메이션이 이벤트로 제대로 쐈는지 확인할 때 쓴다)
 
     // 쏘고 싶은 상태인지. 마우스 왼쪽 버튼을 누르고 있고, 총알이 있고, 게임 중이며, Alt로 커서를 푼 상태가 아니어야 한다.
+    // 근접 모드에서는 총을 들고 있지 않으므로 쏘지 않는다. (좌클릭은 PlayerMeleeAttack 이 휘두르기로 쓴다)
     public bool WantsToFire =>
         GameManager.Instance.State == GameState.Playing
         && CursorManager.IsCursorFree == false
+        && _player.WeaponMode != WeaponMode.Melee
         && _ammo > 0
         && Input.GetButton("Fire1");
 
@@ -52,6 +55,7 @@ public class PlayerGunFire : MonoBehaviour
     private void Awake()
     {
         _ammo = _maxAmmo;
+        _player = GetComponent<Player>();
 
         // 레이저는 점 두 개(총구, 맞은 곳)로 그리고, 쏘기 전에는 숨겨 둔다.
         if (_laserLine != null)

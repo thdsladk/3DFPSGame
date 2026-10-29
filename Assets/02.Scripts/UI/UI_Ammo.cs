@@ -22,6 +22,7 @@ public class UI_Ammo : MonoBehaviour
     [SerializeField] private Player _player;
     [SerializeField] private Sprite _normalWeaponSprite; // 일반 모드 무기 (Weapon01_gun)
     [SerializeField] private Sprite _sniperWeaponSprite; // 저격 모드 무기 (Weapon02_sniper)
+    [SerializeField] private Sprite _meleeWeaponSprite; // 근접 모드 무기 (비워 두면 근접 모드에서 무기 이미지를 숨긴다)
 
     private void Start()
     {
@@ -55,6 +56,13 @@ public class UI_Ammo : MonoBehaviour
 
     private void RefreshWeapon()
     {
-        _weaponImage.sprite = _player.WeaponMode == WeaponMode.Sniper ? _sniperWeaponSprite : _normalWeaponSprite;
+        Sprite sprite = _player.WeaponMode switch
+        {
+            WeaponMode.Sniper => _sniperWeaponSprite,
+            WeaponMode.Melee => _meleeWeaponSprite,
+            _ => _normalWeaponSprite,
+        };
+        _weaponImage.sprite = sprite;
+        _weaponImage.enabled = sprite != null;
     }
 }

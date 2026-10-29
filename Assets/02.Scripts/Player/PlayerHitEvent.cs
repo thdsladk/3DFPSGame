@@ -6,11 +6,13 @@ public class PlayerHitEvent : MonoBehaviour
 {
     private Player _player;
     private PlayerBombFire _bombFire;
+    private PlayerMeleeAttack _meleeAttack;
 
     private void Start()
     {
         _player = GetComponentInParent<Player>();
         _bombFire = GetComponentInParent<PlayerBombFire>();
+        _meleeAttack = GetComponentInParent<PlayerMeleeAttack>();
     }
 
     // 발사 애니메이션에서 총을 쏘는 프레임에 걸어 둔 이벤트
@@ -23,5 +25,11 @@ public class PlayerHitEvent : MonoBehaviour
     public void ThrowEvent()
     {
         _bombFire.ThrowEvent();
+    }
+
+    // 휘두르기 애니메이션에서 칼이 몸 앞을 지나는 프레임에 걸어 둔 이벤트
+    public void MeleeEvent()
+    {
+        _meleeAttack.MeleeEvent();
     }
 }
