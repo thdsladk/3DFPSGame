@@ -16,6 +16,9 @@ public partial class Zombie
         public void Enter()
         {
             _zombie.StopAgent();
+
+            // 남아 있던 Hit 트리거가 Any State → Hit 로 쓰러지는 모션을 끊지 않도록 지운다.
+            _zombie._animator.ResetTrigger(HitHash);
             _zombie._animator.SetTrigger(DeathHash);
             _zombie.StartCoroutine(Death_Coroutine());
         }
