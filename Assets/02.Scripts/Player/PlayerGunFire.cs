@@ -29,12 +29,14 @@ public class PlayerGunFire : MonoBehaviour
 
     private const float LaserFallbackDropHeight = 0.2f; // 총구가 없을 때 카메라보다 이만큼 아래에서 레이저를 시작한다
     private const int MaxExplosionHitCount = 32; // 한 번 터질 때 판정할 최대 콜라이더 수
+    private const float HeadCheckDepth = 1f; // 몸에 맞은 뒤 이만큼 더 들어간 곳까지 머리를 지나는지 본다 (몸 두께)
 
     private readonly Collider[] _explosionBuffer = new Collider[MaxExplosionHitCount]; // 매번 새 배열을 만들지 않도록 재사용한다
     private readonly HashSet<IDamageable> _damagedTargets = new HashSet<IDamageable>(); // 콜라이더가 여러 개인 대상이 두 번 맞지 않게
     private Weapon _weapon; // 지금 든 무기 (스탯과 남은 총알)
     private bool _isTriggerHeld = false; // 방아쇠를 당기고 있는지 (좌클릭 행동이 정한다)
     private Coroutine _reloadCoroutine; // 장전 중이면 실행 중인 코루틴, 아니면 null
+    private float _reloadElapsed = 0f; // 지금 넣고 있는 탄(탄창식은 탄창 전체)을 장전하는 데 지난 시간
     private Coroutine _laserCoroutine; // 레이저를 보이고 있으면 실행 중인 코루틴, 아니면 null
     private Color _laserStartColor; // 처음 색 (흐려졌다가 다음 발사에서 되돌릴 때 쓴다)
     private Color _laserEndColor;
@@ -43,6 +45,20 @@ public class PlayerGunFire : MonoBehaviour
     public int Ammo => _weapon != null ? _weapon.Ammo : 0;
     public int MaxAmmo => _weapon != null ? _weapon.Data.MaxAmmo : 0;
     public float FireInterval => _weapon != null ? _weapon.Data.FireInterval : 0f;
+    // 장전 진행률 (0~1, 장전 중이 아니면 0). 탄창식은 장전 시간의 진행률, 한 발씩은 탄창이 얼마나 찼는지(넣고 있는 탄 포함)를 돌려준다.
+    public float ReloadProgress
+    {
+        get
+        {
+            if (IsReloading == false || MaxAmmo <= 0) return 0f;
+
+            float current = _weapon.Data.ReloadTime > 0f ? Mathf.Clamp01(_reloadElapsed / _weapon.Data.ReloadTime) : 1f;
+            if (_weapon.Data.ReloadType == ReloadType.Magazine) return current;
+
+            return Mathf.Clamp01((_weapon.Ammo + current) / MaxAmmo);
+        }
+    }
+
     public int ShotCount { get; private set; } // 지금까지 쏜 횟수 (발사 애니메이션이 이벤트로 제대로 쐈는지 확인할 때 쓴다)
 
     // 쏘고 싶은 상태인지. 방아쇠를 당기고 있고, 총알이 있고, 게임 중이며, Alt로 커서를 푼 상태가 아니어야 한다.
@@ -143,12 +159,10 @@ public class PlayerGunFire : MonoBehaviour
     // 무기의 장전 방식대로 장전하고, 탄창이 가득 차면 끝난다.
     private IEnumerator Reload_Coroutine()
     {
-        var wait = new WaitForSeconds(_weapon.Data.ReloadTime);
-
         if (_weapon.Data.ReloadType == ReloadType.Magazine)
         {
             // 탄창식 : 장전 시간이 다 지나야 한 번에 가득 채운다. (중간에 쏘면 한 발도 들어가지 않는다)
-            yield return wait;
+            yield return WaitReloadTime_Coroutine();
 
             _weapon.FillAmmo();
         }
@@ -157,7 +171,7 @@ public class PlayerGunFire : MonoBehaviour
             // 한 발씩 : 장전 시간마다 한 발씩 넣는다.
             while (_weapon.IsAmmoFull == false)
             {
-                yield return wait;
+                yield return WaitReloadTime_Coroutine();
 
                 _weapon.AddAmmo();
                 OnAmmoChanged?.Invoke();
@@ -166,6 +180,17 @@ public class PlayerGunFire : MonoBehaviour
 
         _reloadCoroutine = null;
         OnAmmoChanged?.Invoke(); // 장전이 끝났음을 알린다
+    }
+
+    // 장전 시간만큼 기다리며 지난 시간을 센다. (UI 게이지가 ReloadProgress 로 읽어 간다)
+    private IEnumerator WaitReloadTime_Coroutine()
+    {
+        _reloadElapsed = 0f;
+        while (_reloadElapsed < _weapon.Data.ReloadTime)
+        {
+            yield return null;
+            _reloadElapsed += Time.deltaTime;
+        }
     }
 
     private void Shoot()
@@ -224,22 +249,33 @@ public class PlayerGunFire : MonoBehaviour
             effect.transform.forward = hitInfo.normal; //  수직 위치로 회전
             effect.Play();
 
-            AttackAction(hitInfo, data.Damage);
+            AttackAction(ray, hitInfo, data.Damage);
         }
 
         return hitInfo.point;
     }
 
-    public void AttackAction(RaycastHit hitInfo, float damage)
+    // 맞은 대상에게 대미지를 한 번 준다. 레이가 대상의 머리(HeadShot)도 지나갔으면 대미지를 배율만큼 늘린다.
+    private void AttackAction(Ray ray, RaycastHit hitInfo, float damage)
     {
+        // 1. 좀비 코·머리처럼 자식 콜라이더에 맞아도 대미지가 들어가도록 부모까지 찾는다.
+        IDamageable target = hitInfo.collider.GetComponentInParent<IDamageable>();
+        if (target == null) return;
+
+        // 2. 머리가 몸 캡슐 안에 있어 레이가 몸에 먼저 맞으므로, 몸 두께만큼 더 들어가 머리를 지나는지 본다.
+        HeadShot headShot = target is Component targetComponent ? targetComponent.GetComponentInChildren<HeadShot>() : null;
+        if (headShot != null)
+        {
+            damage = headShot.GetDamage(ray, hitInfo.distance + HeadCheckDepth, damage);
+        }
+
         DamageInfo damageInfo = new DamageInfo()
         {
             Value = damage,
             HitPoint = hitInfo.point,
             HitNormal = hitInfo.normal,
         };
-        // 좀비 코처럼 자식 콜라이더에 맞아도 대미지가 들어가도록 부모까지 찾는다.
-        hitInfo.collider.GetComponentInParent<IDamageable>()?.TakeDamage(damageInfo);
+        target.TakeDamage(damageInfo);
     }
 
     // 맞은 곳에서 터져 범위 안 대상마다 한 번씩 대미지를 준다.

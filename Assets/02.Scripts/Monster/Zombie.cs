@@ -102,6 +102,7 @@ public partial class Zombie : MonoBehaviour, IDamageable
     private CharacterController _playerController; // 플레이어 발밑 높이를 구할 때 쓴다
     private NavMeshAgent _agent;
     private CapsuleCollider _collider;
+    private Collider[] _colliders; // 몸 캡슐과 머리(HeadShot) 등 이 좀비의 모든 콜라이더 (죽으면 함께 끄고 되살아나면 켠다)
     private Animator _animator;
 
     // 상태 머신
@@ -129,6 +130,7 @@ public partial class Zombie : MonoBehaviour, IDamageable
         _player = GameObject.FindGameObjectWithTag("Player");
         _playerController = _player.GetComponent<CharacterController>();
         _collider = GetComponent<CapsuleCollider>();
+        _colliders = GetComponentsInChildren<Collider>(true);
         _agent = GetComponent<NavMeshAgent>();
         _animator = GetComponentInChildren<Animator>();
         _path = new NavMeshPath();
@@ -191,7 +193,7 @@ public partial class Zombie : MonoBehaviour, IDamageable
     {
         // 1. 체력과 충돌을 되돌리고, 체력바에 알린다.
         _health = _maxHealth;
-        _collider.enabled = true;
+        SetCollidersEnabled(true);
         OnHealthChanged?.Invoke();
 
         // 2. 에이전트를 지금 자리의 NavMesh 위에 올리고 다시 움직일 수 있게 한다. 이 자리가 처음 자리가 된다.
@@ -223,6 +225,15 @@ public partial class Zombie : MonoBehaviour, IDamageable
         else
         {
             Destroy(gameObject);
+        }
+    }
+
+    // 몸과 머리 콜라이더를 함께 켜고 끈다. (죽은 뒤 머리 콜라이더만 허공에 남아 총알을 막지 않게)
+    private void SetCollidersEnabled(bool isEnabled)
+    {
+        foreach (Collider col in _colliders)
+        {
+            col.enabled = isEnabled;
         }
     }
 

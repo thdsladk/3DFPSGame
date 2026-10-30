@@ -36,8 +36,8 @@ public partial class Zombie
             // 1. 죽는 순간 남은 좀비 수에서 뺀다.
             GameManager.Instance.UnregisterZombie();
 
-            // 2. 쓰러진 몸에 길이 막히지 않게 충돌을 끈다.
-            _zombie._collider.enabled = false;
+            // 2. 쓰러진 몸에 길이 막히지 않게 몸과 머리 충돌을 끈다.
+            _zombie.SetCollidersEnabled(false);
 
             // 3. 잠시 뒤 사라진다.
             yield return new WaitForSeconds(_zombie._deathRemoveDelay);

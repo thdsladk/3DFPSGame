@@ -10,6 +10,7 @@ public class UI_Ammo : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _ammoText; // 총알 수 글자 (AmmoPanel/AmmoText)
 
     [SerializeField] private PlayerGunFire _playerGunFire;
+    [SerializeField] private Image _reloadGauge; // 총알 아이콘 뒤의 원형 장전 게이지 (AmmoPanel/ReloadGauge, Filled · Radial 360)
 
     [Header("폭탄")]
     [SerializeField] private TextMeshProUGUI _bombText; // 폭탄 수 글자 (AmmoPanel/BombText)
@@ -44,9 +45,21 @@ public class UI_Ammo : MonoBehaviour
         if (_playerWeapons != null) _playerWeapons.OnWeaponChanged -= RefreshWeapon;
     }
 
+    // 장전 게이지는 매 프레임 차오르므로 이벤트가 아니라 여기서 채운다. 장전 중일 때만 갱신한다.
+    private void Update()
+    {
+        if (_playerGunFire.IsReloading == false) return;
+
+        _reloadGauge.fillAmount = _playerGunFire.ReloadProgress;
+    }
+
     private void RefreshAmmo()
     {
         _ammoText.text = _playerGunFire.MaxAmmo > 0 ? _playerGunFire.Ammo.ToString() : NoAmmoText;
+
+        // 장전이 시작되면 게이지를 보이고, 끝나거나(쏘기·무기 교체로) 취소되면 숨긴다.
+        _reloadGauge.enabled = _playerGunFire.IsReloading;
+        _reloadGauge.fillAmount = _playerGunFire.ReloadProgress;
     }
 
     private void RefreshBomb()

@@ -1,6 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum MeleeHitMode
+{
+    Collider,
+    Fan
+}
+
 // 역할 : 근접 무기를 든 채 좌클릭하면(SwingAction) 쿠크리를 휘두르고, 휘두르는 모션이 앞을 지나는 순간(MeleeEvent) 앞쪽 적에게 대미지를 준다.
 // 휘두르는 애니메이션은 Swing Layer (Empty → swing → Empty) 가 맡는다.
 public class PlayerMeleeAttack : MonoBehaviour
@@ -10,6 +16,10 @@ public class PlayerMeleeAttack : MonoBehaviour
     [SerializeField] private float _attackRadius = 1f; // 판정 구의 반지름
     [SerializeField] private float _attackHeight = 1f; // 판정 구의 높이 (발 기준)
     [SerializeField] private LayerMask _hitMask; // 맞출 수 있는 레이어 (Zombie, Drum 등)
+
+    [Header("부채꼴")]
+    [SerializeField] private float _range = 2f;
+    [SerializeField] private float _angle = 90f;
 
     private const int MaxHitCount = 16; // 한 번에 판정할 최대 콜라이더 수
 
