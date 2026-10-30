@@ -1,29 +1,28 @@
 using UnityEngine;
 
-// 저격 모드에서 마우스 오른쪽 버튼을 누르고 있는 동안 시야각을 좁혀 확대 한다.
+// 역할 : 줌 행동(ZoomAction)이 부르면 시야각을 좁혀 확대하고, 조준경을 쓰는 무기면 조준경 화면을 띄운다.
+// 우클릭으로 줌을 쓸지는 무기마다 정한다. (저격총·대포)
 public class PlayerZoom : MonoBehaviour
 {
-    [SerializeField] private GameObject _sniperZoom;
-    [SerializeField] private float _normalPov = 60f;
-    [SerializeField] private float _sniperPov = 15f;
+    [SerializeField] private GameObject _sniperZoom; // 조준경 화면
+    [SerializeField] private float _normalPov = 60f; // 줌을 풀었을 때 시야각
 
-    private Player _player;
-
-
-    private void Awake()
+    private void Start()
     {
-        _player = GetComponent<Player>();
+        ZoomOut();
     }
 
-    private void Update()
+    // 정한 시야각으로 확대한다.
+    public void ZoomIn(float fov, bool useScope)
     {
-        if (GameManager.Instance.State != GameState.Playing)
-        {
-            return;
-        }
+        _sniperZoom.SetActive(useScope);
+        Camera.main.fieldOfView = fov;
+    }
 
-        bool isZooming = _player.WeaponMode == WeaponMode.Sniper && Input.GetMouseButton(1);
-        _sniperZoom.SetActive(isZooming);
-        Camera.main.fieldOfView = isZooming ? _sniperPov : _normalPov;
+    // 원래 시야각으로 돌아간다.
+    public void ZoomOut()
+    {
+        _sniperZoom.SetActive(false);
+        Camera.main.fieldOfView = _normalPov;
     }
 }

@@ -32,6 +32,7 @@ public partial class Player : MonoBehaviour, IDamageable
 
     [SerializeField] private float _fireAnimationLength = 0.5f; // 발사 애니메이션 클립 길이 (초)
     [SerializeField] private float _maxFireAnimationSpeed = 5f; // 연사가 빠를 때 발사 애니메이션을 최대 몇 배까지 빠르게 재생할지
+    [SerializeField] private float _minFireAnimationSpeed = 0.25f; // 발사 간격이 긴 무기(저격총·대포)는 발사 애니메이션을 이 배율까지 느리게 재생한다
 
     [SerializeField]
     private float _injuredStartHealthRatio = 0.7f; // 체력이 이 비율 아래로 내려가면 다친 모션이 섞이기 시작한다 (위험 비율에서 완전히 다친 모션)
@@ -54,9 +55,6 @@ public partial class Player : MonoBehaviour, IDamageable
     private PlayerMove _playerMove;
     private PlayerGunFire _gunFire;
 
-    private WeaponMode _weaponMode = WeaponMode.Normal;
-    public WeaponMode WeaponMode => _weaponMode;
-
     // UI가 읽어 가는 값 (읽기만 할 수 있다)
     public float MaxHealth => _maxHealth;
     public float Health => _health;
@@ -64,9 +62,6 @@ public partial class Player : MonoBehaviour, IDamageable
 
     // Action 자료형 : 함수(들)를 저장할 수 있다. 맞으면 체력바(UI_PlayerStats)에 알린다.
     public event Action OnDamaged;
-
-    // 무기 모드가 바뀌면 알린다. (UI_Ammo 가 구독해 무기 이미지를 바꾼다)
-    public event Action OnWeaponModeChanged;
 
     // 움직이는 중인지 (수평 속도로 판단한다)
     private bool IsMoving => _playerMove.HorizontalVelocity.sqrMagnitude > _moveThreshold * _moveThreshold;
@@ -116,30 +111,8 @@ public partial class Player : MonoBehaviour, IDamageable
             return;
         }
 
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            ChangeWeaponMode(WeaponMode.Normal);
-        }
-        else if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            ChangeWeaponMode(WeaponMode.Sniper);
-        }
-        else if (Input.GetKeyDown(KeyCode.Alpha3))
-        {
-            ChangeWeaponMode(WeaponMode.Melee);
-        }
-
         UpdateMoveAnimation();
         _currentState.Update();
-    }
-
-    // 무기 모드를 바꾸고, 실제로 바뀌었을 때만 구독자(UI)에게 알린다.
-    private void ChangeWeaponMode(WeaponMode nextMode)
-    {
-        if (_weaponMode == nextMode) return;
-
-        _weaponMode = nextMode;
-        OnWeaponModeChanged?.Invoke();
     }
 
     // 지금 상태를 나가고(Exit) 다음 상태로 들어간다(Enter). 발사 애니메이션 값도 함께 바꾼다.
@@ -189,7 +162,7 @@ public partial class Player : MonoBehaviour, IDamageable
     private float GetFireAnimationSpeed()
     {
         float speed = _fireAnimationLength / Mathf.Max(0.01f, _gunFire.FireInterval);
-        return Mathf.Clamp(speed, 1f, _maxFireAnimationSpeed);
+        return Mathf.Clamp(speed, _minFireAnimationSpeed, _maxFireAnimationSpeed);
     }
 
     private void SetFireAnimationSpeed()

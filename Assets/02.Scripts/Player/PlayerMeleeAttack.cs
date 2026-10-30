@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// 역할 : 근접 모드에서 좌클릭하면 쿠크리를 휘두르고, 휘두르는 모션이 앞을 지나는 순간(MeleeEvent) 앞쪽 적에게 대미지를 준다.
+// 역할 : 근접 무기를 든 채 좌클릭하면(SwingAction) 쿠크리를 휘두르고, 휘두르는 모션이 앞을 지나는 순간(MeleeEvent) 앞쪽 적에게 대미지를 준다.
 // 휘두르는 애니메이션은 Swing Layer (Empty → swing → Empty) 가 맡는다.
 public class PlayerMeleeAttack : MonoBehaviour
 {
@@ -17,41 +17,23 @@ public class PlayerMeleeAttack : MonoBehaviour
 
     private readonly Collider[] _hitBuffer = new Collider[MaxHitCount]; // 매번 새 배열을 만들지 않도록 재사용한다
     private readonly HashSet<IDamageable> _damagedTargets = new HashSet<IDamageable>(); // 콜라이더가 여러 개인 대상이 두 번 맞지 않게
-    private Player _player;
     private Animator _animator;
     private bool _isAttacking = false; // 휘두르는 중이고 아직 타격 순간이 오지 않았는지
 
+
+    // 콜라이더 충돌 방식 
+    [SerializeField] private Collider _meleeCollider;
+    public void ActivateCollier() => _meleeCollider.enabled = true;
+    public void DeactivateCollier() => _meleeCollider.enabled = false;
+
+
     private void Awake()
     {
-        _player = GetComponent<Player>();
         _animator = GetComponentInChildren<Animator>();
     }
 
-    private void Start()
-    {
-        _player.OnWeaponModeChanged += CancelAttack;
-    }
-
-    private void OnDestroy()
-    {
-        if (_player != null) _player.OnWeaponModeChanged -= CancelAttack;
-    }
-
-    private void Update()
-    {
-        if (GameManager.Instance.State != GameState.Playing) return;
-
-        // Alt로 커서를 풀어 UI 버튼을 누르는 중이면 휘두르지 않는다.
-        if (CursorManager.IsCursorFree) return;
-
-        if (_player.WeaponMode == WeaponMode.Melee && Input.GetButtonDown("Fire1"))
-        {
-            StartAttack();
-        }
-    }
-
-    // 휘두르는 애니메이션을 시작한다. 이미 휘두르는 중이면 무시한다.
-    private void StartAttack()
+    // 휘두르는 애니메이션을 시작한다. 이미 휘두르는 중이면 무시한다. (좌클릭 행동 SwingAction 이 부른다)
+    public void StartAttack()
     {
         if (_isAttacking) return;
 
@@ -91,7 +73,7 @@ public class PlayerMeleeAttack : MonoBehaviour
     }
 
     // 무기를 바꾸면 남은 휘두르기 입력을 지운다. (모드를 바꾼 뒤에 휘두르는 동작이 튀어나오지 않게)
-    private void CancelAttack()
+    public void CancelAttack()
     {
         _isAttacking = false;
         _animator.ResetTrigger(SwingHash);
@@ -100,6 +82,7 @@ public class PlayerMeleeAttack : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position + transform.forward * _attackRange + Vector3.up * _attackHeight, _attackRadius);
+        Gizmos.DrawWireSphere(transform.position + transform.forward * _attackRange + Vector3.up * _attackHeight,
+            _attackRadius);
     }
 }

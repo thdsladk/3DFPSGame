@@ -27,7 +27,6 @@ public class PlayerBombFire : MonoBehaviour
     private Animator _animator;
     private int _throwLayerIndex;
     private int _maxAmmo; // 처음 가진 폭탄 수
-    private Player _player;
 
     public int Ammo => _ammo;
     public int MaxAmmo => _maxAmmo;
@@ -42,7 +41,6 @@ public class PlayerBombFire : MonoBehaviour
         _maxAmmo = _ammo;
         _animator = GetComponentInChildren<Animator>();
         _throwLayerIndex = _animator.GetLayerIndex(ThrowLayerName);
-        _player = GetComponent<Player>();
     }
 
     private void Update()
@@ -55,25 +53,15 @@ public class PlayerBombFire : MonoBehaviour
             //GameLogger.Log($"PowerGauge : {_powerGauge}");
         }
 
-        // 1. 마우스 오른쪽 버튼 입력 받기 : 누르면 던지기 시작, 떼면 손을 놓는다.
-        if (Input.GetButtonDown("Fire2") && _player.WeaponMode == WeaponMode.Normal)
-        {
-            StartThrow();
-        }
-        else if (Input.GetButtonUp("Fire2"))
-        {
-            ReleaseThrow();
-        }
-
-        // 2. 누르고 있는 동안에는 손을 놓기 직전에서 모션을 멈춰 둔다.
+        // 누르고 있는 동안에는 손을 놓기 직전에서 모션을 멈춰 둔다.
         if (_isHolding)
         {
             HoldBeforeRelease();
         }
     }
 
-    // 버튼을 누르면 던지는 모션을 시작하고 힘을 모은다.
-    private void StartThrow()
+    // 버튼을 누르면 던지는 모션을 시작하고 힘을 모은다. (우클릭 행동 BombThrowAction 이 부른다)
+    public void StartThrow()
     {
         // 이미 던지는 중이면 이번 입력은 무시한다. (트리거가 쌓여 동작이 두 번 재생되지 않게)
         if (_isThrowing) return;
@@ -97,7 +85,7 @@ public class PlayerBombFire : MonoBehaviour
     }
 
     // 버튼을 떼면 모은 힘을 기억해 두고 멈춰 있던 모션을 이어서 재생한다. 폭탄은 손을 놓는 ThrowEvent 에서 날아간다.
-    private void ReleaseThrow()
+    public void ReleaseThrow()
     {
         if (_isHolding == false) return;
 
