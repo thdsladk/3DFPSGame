@@ -35,6 +35,7 @@ public class LoginSceneController : MonoBehaviour
 
     [Header("로딩")]
     [SerializeField] private TextMeshProUGUI _loadingDots; // 점이 하나씩 늘어나는 글자
+    [SerializeField] private GameObject _loadingStage; // 로딩 중에만 켜는 2.5D 연출 (좀비를 쏘는 장면)
 
     [SerializeField] private int _loadingDotCount = 8; // 점 개수
     [SerializeField] private float _loadingSeconds = 8f; // 로딩 화면을 보여 주는 시간 (초)
@@ -81,6 +82,7 @@ public class LoginSceneController : MonoBehaviour
         SetPanel(_loadingPanel, false);
         SetPanel(_loginPanel, true);
         _loginMessage.text = string.Empty;
+        if (_loadingStage != null) _loadingStage.SetActive(false);
     }
 
     private void Update()
@@ -210,6 +212,7 @@ public class LoginSceneController : MonoBehaviour
     {
         _isBusy = true;
         _loadingDots.text = string.Empty;
+        if (_loadingStage != null) _loadingStage.SetActive(true);
         yield return SwitchPanel_Coroutine(_loginPanel, _loadingPanel);
 
         // 1. 게임 씬을 뒤에서 불러 두되, 로딩 연출이 끝날 때까지 넘어가지 않게 한다.
