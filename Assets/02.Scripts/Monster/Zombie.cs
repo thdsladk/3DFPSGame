@@ -43,6 +43,7 @@ public partial class Zombie : MonoBehaviour, IDamageable
 
     [Header("이펙트")]
     [SerializeField] private GameObject _bloodSprayPrefab; // 맞은 자리에서 뿜어지는 피
+    [SerializeField] private float _bloodSprayLifetime = 1f; // 피가 뿜어진 뒤 사라지기까지의 시간 (초)
 
     [Header("Patrol")]
     [SerializeField] private float _patrolDistance = 5f; // 처음 자리에서 순찰 지점까지의 거리
@@ -511,14 +512,25 @@ public partial class Zombie : MonoBehaviour, IDamageable
         }
     }
 
-    // 좀비의 자식으로 피 스프레이를 만들고, 맞은 자리와 방향으로 옮긴다.
+    // 좀비의 자식으로 피 스프레이를 만들고, 맞은 자리와 방향으로 옮긴다. 한 번 뿜고 잠시 뒤 사라진다.
     private void SprayBlood(DamageInfo damageInfo)
     {
         // Blood Gush 에셋을 아직 넣지 않았으면 건너뛴다.
         if (_bloodSprayPrefab == null) return;
 
+        // 1. 맞은 자리에 맞은 방향으로 피를 만든다. (좀비를 따라 움직이도록 자식으로 둔다)
         GameObject bloodSpray = Instantiate(_bloodSprayPrefab, transform);
         bloodSpray.transform.position = damageInfo.HitPoint;
         bloodSpray.transform.forward = damageInfo.HitNormal;
+
+        // 2. 에셋의 파티클이 반복(Loop)으로 되어 있어 그대로 두면 계속 뿜어진다. 한 번만 뿜도록 반복을 끈다.
+        foreach (ParticleSystem particle in bloodSpray.GetComponentsInChildren<ParticleSystem>())
+        {
+            ParticleSystem.MainModule main = particle.main;
+            main.loop = false;
+        }
+
+        // 3. 잠시 뒤 지운다. 남겨 두면 좀비가 풀로 돌아갔다가 다시 생성될 때 함께 켜져서 맞지도 않았는데 피를 흘린다.
+        Destroy(bloodSpray, _bloodSprayLifetime);
     }
 }
