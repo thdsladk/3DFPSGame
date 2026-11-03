@@ -12,8 +12,8 @@ public static class AccountStorage
 {
     private const string FileName = "accounts.json";
 
-    // 영문자(대/소문자)와 숫자만 쓰고, 영문자와 숫자가 둘 다 들어가야 한다. (아이디·비밀번호 공통 규칙)
-    private static readonly Regex FormatRegex = new Regex("^(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9]+$");
+    // 영문자(대/소문자) 또는 숫자로만 이루어져야 한다. 영문자만, 숫자만 써도 된다. (아이디·비밀번호 공통 규칙)
+    private static readonly Regex FormatRegex = new Regex("^[A-Za-z0-9]+$");
 
     private static AccountList _accounts; // 한 번 읽은 계정 목록 (처음 쓸 때 파일에서 읽는다)
 
