@@ -10,7 +10,6 @@ public class UI_PausePopup : MonoBehaviour
     [SerializeField] private Button _continueButton; // 계속하기
     [SerializeField] private Button _restartButton; // 다시 시작
     [SerializeField] private Button _quitButton; // 게임 종료
-    [SerializeField] private CursorManager _cursorManager; // 팝업이 떠 있는 동안 커서를 풀어 버튼을 누를 수 있게 한다
 
     private void Start()
     {
@@ -40,13 +39,14 @@ public class UI_PausePopup : MonoBehaviour
         _popup.SetActive(isPaused);
 
         // 커서 위치가 곧 시선이라 평소에는 화면 안에 가둬 두고, 팝업이 떠 있는 동안만 풀어 준다.
+        // CursorManager 는 씬을 다시 불러와도 살아 있는 싱글톤이라, 씬에 직접 연결하지 않고 Instance 로 찾는다.
         if (isPaused)
         {
-            _cursorManager.UnlockCursor();
+            CursorManager.Instance.UnlockCursor();
         }
         else
         {
-            _cursorManager.ConfineCursor();
+            CursorManager.Instance.ConfineCursor();
         }
     }
 }

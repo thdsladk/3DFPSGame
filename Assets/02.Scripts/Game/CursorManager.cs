@@ -3,11 +3,28 @@ using UnityEngine;
 
 // 마우스 커서를 보이게 두고 게임 화면 밖으로 나가지 않게 가둔다.
 // 커서의 화면 위치가 곧 바라보는 각도이므로, 시작할 때 커서를 화면 가운데로 옮긴다.
-public class CursorManager : MonoBehaviour
+public class CursorManager : SingletonBehavior<CursorManager>
 {
-    private IEnumerator Start()
+    protected override void Awake()
     {
-        // 잠금 상태로 한 프레임 두면 커서가 화면 가운데로 이동한다.
+        base.Awake();
+
+        // 씬을 다시 불러와 생긴 복제본은 곧 지워지므로 아무것도 하지 않는다.
+        if (IsDuplicate) return;
+
+        StartCoroutine(CenterCursor_Coroutine());
+    }
+
+    // 다시 시작으로 씬을 새로 불러오면 불린다. 게임 오버·일시정지 때 풀어 둔 커서를 처음처럼 가운데로 옮겨 가둔다.
+    protected override void OnSceneInstanceAwake(CursorManager sceneInstance)
+    {
+        StopAllCoroutines();
+        StartCoroutine(CenterCursor_Coroutine());
+    }
+
+    // 잠금 상태로 한 프레임 두면 커서가 화면 가운데로 이동한다. 그 뒤 화면 안에 가둔다.
+    private IEnumerator CenterCursor_Coroutine()
+    {
         LockCursor();
         yield return null;
 

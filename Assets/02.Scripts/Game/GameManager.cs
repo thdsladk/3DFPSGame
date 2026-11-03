@@ -13,11 +13,8 @@ public enum GameState
     Pause
 }
 
-public class GameManager : MonoBehaviour
+public class GameManager : SingletonBehavior<GameManager>
 {
-    private static GameManager _instance = null;
-    public static GameManager Instance => _instance;
-
     private GameState _state = GameState.Ready;
     public GameState State => _state;
 
@@ -32,23 +29,32 @@ public class GameManager : MonoBehaviour
     // 남은 좀비 수나 최대 좀비 수가 바뀔 때마다 알린다. (UI_ZombieCount 가 구독)
     public event Action OnZombieCountChanged;
 
-    // 게임 상태(준비·플레이·일시정지·게임오버)가 바뀔 때마다 알린다. (UI_PausePopup 이 구독)
+    // 게임 상태(준비·플레이·일시정지·게임오버)가 바뀔 때마다 알린다. (UI_PausePopup, UI_GameOverPopup 이 구독)
     public event Action OnStateChanged;
 
 
-    private void Awake()
-    {
-        if (_instance != null)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        _instance = this;
-    }
-
     private void Start()
     {
+        // 씬을 다시 불러와 생긴 복제본은 곧 지워지므로 시작하지 않는다. (살아 있는 쪽이 OnSceneInstanceAwake 에서 새 판을 시작한다)
+        if (IsDuplicate) return;
+
+        StartCoroutine(StartSequence_Coroutine());
+    }
+
+    // 다시 시작으로 씬을 새로 불러오면 불린다. 새 씬의 UI 를 넘겨받고, 이전 판의 상태·좀비 수를 지운 뒤 새 판을 시작한다.
+    protected override void OnSceneInstanceAwake(GameManager sceneInstance)
+    {
+        // 1. 이전 씬의 UI 는 지워졌으므로 새 씬의 UI 로 바꾼다.
+        _stateText = sceneInstance._stateText;
+
+        // 2. 이전 판에서 하던 일과 값을 처음으로 되돌린다.
+        StopAllCoroutines();
+        Time.timeScale = 1f;
+        _maxZombieCount = 0;
+        _killedZombieCount = 0;
+        _state = GameState.Ready;
+
+        // 3. 준비 → 게임 시작 순서를 다시 진행한다.
         StartCoroutine(StartSequence_Coroutine());
     }
 
@@ -121,13 +127,10 @@ public class GameManager : MonoBehaviour
         ChangeState(GameState.Playing);
     }
 
+    // 플레이어가 쓰러지면 호출한다. 화면 표시는 게임 오버 팝업(UI_GameOverPopup)이 맡는다.
     public void GameOver()
     {
         ChangeState(GameState.GameOver);
-
-        _stateText.gameObject.SetActive(true);
-        _stateText.text = "게임오버";
-        _stateText.color = Color.red;
     }
 
     // 이번 판에 나올 좀비 수를 더한다. 씬에 놓인 좀비는 1, 스포너는 만들 전체 수를 넘긴다.
