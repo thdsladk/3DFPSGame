@@ -78,3 +78,6 @@ crashlytics-build.properties
 .idea/
 # macOS Finder 생성 파일
 .DS_Store
+
+# 성능 측정 결과 (스냅샷·프로파일 기록이라 용량이 크다)
+/PerfResults/

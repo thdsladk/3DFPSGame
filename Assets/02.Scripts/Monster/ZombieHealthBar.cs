@@ -9,6 +9,7 @@ public class ZombieHealthBar : MonoBehaviour
     [SerializeField] private float _smoothTime = 0.2f; // 막대가 목표 값까지 줄어드는 시간 (초)
 
     private Zombie _zombie;
+    private Canvas _canvas; // 체력바를 그리는 월드 캔버스 (숨길 때는 캔버스째 꺼서 UI 갱신 비용도 없앤다)
     private Transform _cameraTransform;
 
     private float _targetValue = 1f;  // 막대가 다가갈 값 (0 ~ 1)
@@ -18,6 +19,7 @@ public class ZombieHealthBar : MonoBehaviour
     {
         // 체력바의 부모(좀비)에서 Zombie를 찾는다.
         _zombie = GetComponentInParent<Zombie>();
+        _canvas = GetComponentInChildren<Canvas>(true);
     }
 
     private void Start()
@@ -59,5 +61,10 @@ public class ZombieHealthBar : MonoBehaviour
         // 2. 체력이 가득 차 있거나 죽었으면 숨기고, 맞았으면 보인다.
         bool isVisible = _zombie.Health > 0f && _zombie.Health < _zombie.MaxHealth;
         _slider.gameObject.SetActive(isVisible);
+
+        // 3. 숨겨 둔 동안에는 캔버스와 LateUpdate(막대·빌보드 갱신)를 꺼서 좀비 수만큼 드는 매 프레임 비용을 없앤다.
+        //    이벤트 구독은 컴포넌트가 꺼져 있어도 동작하므로 맞으면 다시 켜진다.
+        if (_canvas != null) _canvas.enabled = isVisible;
+        enabled = isVisible;
     }
 }
