@@ -61,6 +61,8 @@ public class LoginSceneController : MonoBehaviour
     private const string SignUpDoneText = "회원가입이 완료되었습니다!";
     private const string LoginFailText = "아이디 또는 비밀번호가 맞지 않습니다.";
 
+    private const float LoadedProgress = 0.9f; // allowSceneActivation 이 false 면 progress 가 여기서 멈춘다 (= 다 불러옴)
+
     private Coroutine _shakeCoroutine;
     private bool _isBusy = false; // 가입 완료 대기나 로딩 중이라 버튼 입력을 막는지
 
@@ -215,16 +217,17 @@ public class LoginSceneController : MonoBehaviour
         if (_loadingStage != null) _loadingStage.SetActive(true);
         yield return SwitchPanel_Coroutine(_loginPanel, _loadingPanel);
 
-        // 1. 게임 씬을 뒤에서 불러 두되, 로딩 연출이 끝날 때까지 넘어가지 않게 한다.
+        // 1. 게임 씬을 비동기로 불러 두되, 다 불러도 연출이 끝날 때까지는 넘어가지 않게 한다.
         AsyncOperation loading = SceneManager.LoadSceneAsync(_gameSceneName);
         loading.allowSceneActivation = false;
 
-        // 2. 점을 하나씩 늘려 가운데에 찍는다. (점 개수만큼 시간을 나눈다)
-        var wait = new WaitForSeconds(_loadingSeconds / _loadingDotCount);
-        for (int i = 1; i <= _loadingDotCount; i++)
+        // 2. 연출 시간과 실제 로딩 진행도 중 느린 쪽에 맞춰 점을 하나씩 늘린다.
+        float progress = 0f;
+        for (float elapsed = 0f; progress < 1f; elapsed += Time.deltaTime)
         {
-            yield return wait;
-            _loadingDots.text = new string('.', i);
+            progress = Mathf.Min(elapsed / _loadingSeconds, loading.progress / LoadedProgress);
+            _loadingDots.text = new string('.', Mathf.FloorToInt(progress * _loadingDotCount));
+            yield return null;
         }
 
         // 3. 게임 씬으로 넘어간다.

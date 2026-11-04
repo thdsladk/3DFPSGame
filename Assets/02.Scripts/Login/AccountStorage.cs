@@ -12,28 +12,19 @@ public static class AccountStorage
 {
     private const string FileName = "accounts.json";
 
-    // 아이디 : 이메일 주소이거나, 영문·숫자·-·@·_ 로 된 3~20 글자
-    private static readonly Regex IdRegex = new Regex("^[A-Za-z0-9\\-@_]{3,20}$");
-    private static readonly Regex EmailRegex = new Regex("^[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}$");
+    // 아이디 : 영문·숫자·-·@·_ 로 된 3~20 글자 | 이메일 주소
+    private static readonly Regex IdRegex = new Regex(@"^([\w\-@]{3,20}|[\w.%+\-]+@[\w\-]+(\.[\w\-]+)*\.[A-Za-z]{2,})$", RegexOptions.ECMAScript);
 
-    // 비밀번호 : 대문자·소문자·숫자·기호를 하나 이상씩 넣은 8~30 글자 (공백·한글 등은 안 된다)
-    private static readonly Regex PasswordRegex = new Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])[!-~]{8,30}$");
+    // 비밀번호 : 소문자·대문자·숫자·기호(공백 제외 ASCII)를 하나 이상씩 넣은 8~30 글자
+    private static readonly Regex PasswordRegex = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d])[!-~]{8,30}$", RegexOptions.ECMAScript);
 
     private static AccountList _accounts; // 한 번 읽은 계정 목록 (처음 쓸 때 파일에서 읽는다)
 
     private static string FilePath => Path.Combine(Application.persistentDataPath, FileName);
 
-    // 아이디 형식이 맞는지
-    public static bool IsValidId(string id)
-    {
-        return string.IsNullOrEmpty(id) == false && (IdRegex.IsMatch(id) || EmailRegex.IsMatch(id));
-    }
+    public static bool IsValidId(string id) => IdRegex.IsMatch(id ?? string.Empty);
 
-    // 비밀번호 형식이 맞는지
-    public static bool IsValidPassword(string password)
-    {
-        return string.IsNullOrEmpty(password) == false && PasswordRegex.IsMatch(password);
-    }
+    public static bool IsValidPassword(string password) => PasswordRegex.IsMatch(password ?? string.Empty);
 
     public static bool Exists(string id)
     {
