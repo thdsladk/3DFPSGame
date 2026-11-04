@@ -12,17 +12,27 @@ public static class AccountStorage
 {
     private const string FileName = "accounts.json";
 
-    // 영문자(대/소문자) 또는 숫자로만 이루어져야 한다. 영문자만, 숫자만 써도 된다. (아이디·비밀번호 공통 규칙)
-    private static readonly Regex FormatRegex = new Regex("^[A-Za-z0-9]+$");
+    // 아이디 : 이메일 주소이거나, 영문·숫자·-·@·_ 로 된 3~20 글자
+    private static readonly Regex IdRegex = new Regex("^[A-Za-z0-9\\-@_]{3,20}$");
+    private static readonly Regex EmailRegex = new Regex("^[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}$");
+
+    // 비밀번호 : 대문자·소문자·숫자·기호를 하나 이상씩 넣은 8~30 글자 (공백·한글 등은 안 된다)
+    private static readonly Regex PasswordRegex = new Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])[!-~]{8,30}$");
 
     private static AccountList _accounts; // 한 번 읽은 계정 목록 (처음 쓸 때 파일에서 읽는다)
 
     private static string FilePath => Path.Combine(Application.persistentDataPath, FileName);
 
-    // 아이디·비밀번호 형식이 맞는지
-    public static bool IsValidFormat(string text)
+    // 아이디 형식이 맞는지
+    public static bool IsValidId(string id)
     {
-        return string.IsNullOrEmpty(text) == false && FormatRegex.IsMatch(text);
+        return string.IsNullOrEmpty(id) == false && (IdRegex.IsMatch(id) || EmailRegex.IsMatch(id));
+    }
+
+    // 비밀번호 형식이 맞는지
+    public static bool IsValidPassword(string password)
+    {
+        return string.IsNullOrEmpty(password) == false && PasswordRegex.IsMatch(password);
     }
 
     public static bool Exists(string id)

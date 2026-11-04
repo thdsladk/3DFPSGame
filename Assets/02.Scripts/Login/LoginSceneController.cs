@@ -53,8 +53,8 @@ public class LoginSceneController : MonoBehaviour
     [SerializeField] private float _shakeStrength = 10f; // 흔들리는 폭 (픽셀)
 
     private const string EnterIdAndPasswordText = "아이디와 비밀번호를 입력해 주세요.";
-    private const string InvalidIdText = "아이디는 영문자(대/소문자 가능)랑 숫자만 가능합니다.";
-    private const string InvalidPasswordText = "비밀번호는 영문자(대/소문자 가능)랑 숫자만 가능합니다.";
+    private const string InvalidIdText = "아이디는 이메일 또는 영문, 숫자, -, @, _ 로 된 3~20 글자여야 합니다.";
+    private const string InvalidPasswordText = "비밀번호는 대문자, 소문자, 숫자, 기호를 모두 포함한 8~30 글자여야 합니다.";
     private const string PasswordMismatchText = "비밀번호가 확인과 일치하지 않습니다.";
     private const string PasswordMatchText = "비밀번호가 일치합니다.";
     private const string DuplicateIdText = "이미 사용 중인 아이디입니다.";
@@ -152,13 +152,13 @@ public class LoginSceneController : MonoBehaviour
             return false;
         }
 
-        if (AccountStorage.IsValidFormat(id) == false)
+        if (AccountStorage.IsValidId(id) == false)
         {
             ShowMessage(_signUpMessage, InvalidIdText, _errorColor, false);
             return false;
         }
 
-        if (AccountStorage.IsValidFormat(password) == false)
+        if (AccountStorage.IsValidPassword(password) == false)
         {
             ShowMessage(_signUpMessage, InvalidPasswordText, _errorColor, false);
             return false;
