@@ -1,7 +1,6 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 // 역할 : 로그인 씬의 화면 흐름. 로그인 ⇄ 회원가입 패널을 바꾸고, 입력을 검사해 안내 문구를 띄우며, 로그인하면 로딩 씬으로 넘어간다.
@@ -33,7 +32,7 @@ public class LoginSceneController : MonoBehaviour
     [SerializeField] private float _signUpDoneDelay = 1f; // 가입 완료 문구를 보여 준 뒤 로그인으로 돌아가기까지 (초)
 
     [Header("로딩")]
-    [SerializeField] private string _loadingSceneName = "LoadingScene"; // 로그인하면 넘어갈 씬
+    [SerializeField] private string _gameSceneName = "GameScene"; // 로그인하면 (로딩 씬을 거쳐) 넘어갈 씬
 
     [Header("안내 문구 색")]
     [SerializeField] private Color _infoColor = new Color(1f, 0.82f, 0.25f); // 안내 (노랑)
@@ -210,7 +209,7 @@ public class LoginSceneController : MonoBehaviour
             yield return null;
         }
 
-        SceneManager.LoadScene(_loadingSceneName);
+        SceneLoader.Load(_gameSceneName);
     }
 
     // 지금 패널을 흐리게 지우고 다음 패널을 나타나게 한다.
