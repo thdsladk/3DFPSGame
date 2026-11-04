@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// 역할 : 로그인 씬의 화면 흐름. 로그인 ⇄ 회원가입 패널을 바꾸고, 입력을 검사해 안내 문구를 띄우며, 로그인하면 로딩 화면을 보여 준 뒤 게임 씬으로 넘어간다.
+// 역할 : 로그인 씬의 화면 흐름. 로그인 ⇄ 회원가입 패널을 바꾸고, 입력을 검사해 안내 문구를 띄우며, 로그인하면 로딩 씬으로 넘어간다.
 // 계정 저장·확인은 AccountStorage 가 맡는다.
 public class LoginSceneController : MonoBehaviour
 {
@@ -12,7 +12,6 @@ public class LoginSceneController : MonoBehaviour
     [SerializeField] private CanvasGroup _loginPanel;
 
     [SerializeField] private CanvasGroup _signUpPanel;
-    [SerializeField] private CanvasGroup _loadingPanel;
     [SerializeField] private float _fadeDuration = 0.25f; // 패널이 바뀔 때 흐려졌다 나타나는 시간 (초)
 
     [Header("로그인")]
@@ -34,12 +33,7 @@ public class LoginSceneController : MonoBehaviour
     [SerializeField] private float _signUpDoneDelay = 1f; // 가입 완료 문구를 보여 준 뒤 로그인으로 돌아가기까지 (초)
 
     [Header("로딩")]
-    [SerializeField] private TextMeshProUGUI _loadingDots; // 점이 하나씩 늘어나는 글자
-    [SerializeField] private GameObject _loadingStage; // 로딩 중에만 켜는 2.5D 연출 (좀비를 쏘는 장면)
-
-    [SerializeField] private int _loadingDotCount = 8; // 점 개수
-    [SerializeField] private float _loadingSeconds = 8f; // 로딩 화면을 보여 주는 시간 (초)
-    [SerializeField] private string _gameSceneName = "GameScene";
+    [SerializeField] private string _loadingSceneName = "LoadingScene"; // 로그인하면 넘어갈 씬
 
     [Header("안내 문구 색")]
     [SerializeField] private Color _infoColor = new Color(1f, 0.82f, 0.25f); // 안내 (노랑)
@@ -61,8 +55,6 @@ public class LoginSceneController : MonoBehaviour
     private const string SignUpDoneText = "회원가입이 완료되었습니다!";
     private const string LoginFailText = "아이디 또는 비밀번호가 맞지 않습니다.";
 
-    private const float LoadedProgress = 0.9f; // allowSceneActivation 이 false 면 progress 가 여기서 멈춘다 (= 다 불러옴)
-
     private Coroutine _shakeCoroutine;
     private bool _isBusy = false; // 가입 완료 대기나 로딩 중이라 버튼 입력을 막는지
 
@@ -81,10 +73,8 @@ public class LoginSceneController : MonoBehaviour
 
         // 3. 로그인 패널만 보이게 시작한다.
         SetPanel(_signUpPanel, false);
-        SetPanel(_loadingPanel, false);
         SetPanel(_loginPanel, true);
         _loginMessage.text = string.Empty;
-        if (_loadingStage != null) _loadingStage.SetActive(false);
     }
 
     private void Update()
@@ -209,29 +199,18 @@ public class LoginSceneController : MonoBehaviour
         _isBusy = false;
     }
 
-    // 로딩 화면 : 게임 씬을 미리 불러 두고, 정한 시간 동안 점을 하나씩 찍은 뒤 넘어간다.
+    // 로그인 패널을 흐리게 지운 뒤 로딩 씬으로 넘어간다.
     private IEnumerator Loading_Coroutine()
     {
         _isBusy = true;
-        _loadingDots.text = string.Empty;
-        if (_loadingStage != null) _loadingStage.SetActive(true);
-        yield return SwitchPanel_Coroutine(_loginPanel, _loadingPanel);
-
-        // 1. 게임 씬을 비동기로 불러 두되, 다 불러도 연출이 끝날 때까지는 넘어가지 않게 한다.
-        AsyncOperation loading = SceneManager.LoadSceneAsync(_gameSceneName);
-        loading.allowSceneActivation = false;
-
-        // 2. 연출 시간과 실제 로딩 진행도 중 느린 쪽에 맞춰 점을 하나씩 늘린다.
-        float progress = 0f;
-        for (float elapsed = 0f; progress < 1f; elapsed += Time.deltaTime)
+        _loginPanel.interactable = false;
+        for (float t = 0f; t < _fadeDuration; t += Time.unscaledDeltaTime)
         {
-            progress = Mathf.Min(elapsed / _loadingSeconds, loading.progress / LoadedProgress);
-            _loadingDots.text = new string('.', Mathf.FloorToInt(progress * _loadingDotCount));
+            _loginPanel.alpha = 1f - t / _fadeDuration;
             yield return null;
         }
 
-        // 3. 게임 씬으로 넘어간다.
-        loading.allowSceneActivation = true;
+        SceneManager.LoadScene(_loadingSceneName);
     }
 
     // 지금 패널을 흐리게 지우고 다음 패널을 나타나게 한다.
